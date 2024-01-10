@@ -53,8 +53,7 @@ namespace TensorFlowLite
 
         private void Update()
         {
-            if (!webCamTexture.didUpdateThisFrame) return;
-
+            if (webCamTexture.didUpdateThisFrame) return;
             var tex = NormalizeWebcam(webCamTexture, Screen.width, Screen.height, isFrontFacing);
             OnTextureUpdate.Invoke(tex);
         }
