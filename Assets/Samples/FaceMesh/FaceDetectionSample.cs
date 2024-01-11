@@ -11,11 +11,9 @@ using UnityEngine.UI;
 [RequireComponent(typeof(WebCamInput))]
 public class FaceDetectionSample : MonoBehaviour
 {
-    [SerializeField, FilePopup("*.tflite")]
-    private string faceModelFile = "coco_ssd_mobilenet_quant.tflite";
 
     [SerializeField]
-    private RawImage cameraView = null;
+    private RawImage cameraView;
 
     private FaceDetect faceDetect;
     private List<FaceDetect.Result> results;
@@ -24,18 +22,17 @@ public class FaceDetectionSample : MonoBehaviour
 
     private void Start()
     {
-        faceDetect = new FaceDetect(faceModelFile);
+        faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
         draw = new PrimitiveDraw(Camera.main, gameObject.layer);
-
-        var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.OnTextureUpdate.AddListener(OnTextureUpdate);
+        draw.color = Color.blue;
+        GetComponent<WebCamInput>().OnTextureUpdate.AddListener(OnTextureUpdate);
+        cameraView.material = faceDetect.transformMat;
+        cameraView.rectTransform.GetWorldCorners(rtCorners);
     }
 
     private void OnDestroy()
     {
-        var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.OnTextureUpdate.RemoveListener(OnTextureUpdate);
-
+        GetComponent<WebCamInput>().OnTextureUpdate.RemoveListener(OnTextureUpdate);
         faceDetect?.Dispose();
         draw?.Dispose();
     }
@@ -48,30 +45,19 @@ public class FaceDetectionSample : MonoBehaviour
     private void OnTextureUpdate(Texture texture)
     {
         faceDetect.Invoke(texture);
-        cameraView.material = faceDetect.transformMat;
-        cameraView.rectTransform.GetWorldCorners(rtCorners);
         results = faceDetect.GetResults();
     }
 
     private void DrawResults(List<FaceDetect.Result> results)
     {
-        if (results == null || results.Count == 0)
-        {
-            return;
-        }
-
-        Vector3 min = rtCorners[0];
-        Vector3 max = rtCorners[2];
-
-        draw.color = Color.blue;
-
+        if (results == null || results.Count == 0) return;
         foreach (var result in results)
         {
-            Rect rect = MathTF.Lerp(min, max, result.rect, true);
+            Rect rect = MathTF.Lerp(rtCorners[0], rtCorners[2], result.rect, true);
             draw.Rect(rect, 0.05f);
             foreach (Vector2 p in result.keypoints)
             {
-                draw.Point(MathTF.Lerp(min, max, new Vector3(p.x, 1f - p.y, 0)), 0.1f);
+                draw.Point(MathTF.Lerp(rtCorners[0], rtCorners[2], new Vector3(p.x, 1f - p.y, 0)), 0.1f);
             }
         }
         draw.Apply();

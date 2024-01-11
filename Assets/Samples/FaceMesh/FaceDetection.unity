@@ -479,7 +479,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0b21e5c10ff7748039b2aef806523db0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  faceModelFile: mediapipe/face_detection_back.tflite
   cameraView: {fileID: 2074584278}
 --- !u!4 &1453601107
 Transform:
@@ -508,7 +507,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f81f0d43e2d14fbbb064a205095507c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editorCameraName: Elgato Facecam
+  editorCameraName: DroidCam Source 3
   preferKind: 1
   isFrontFacing: 0
   requestSize: {x: 1280, y: 720}

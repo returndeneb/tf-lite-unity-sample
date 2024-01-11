@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace TensorFlowLite
 {
@@ -29,6 +30,7 @@ namespace TensorFlowLite
         {
             get
             {
+                Debug.Log(_blitMaterial);
                 if (_blitMaterial == null)
                 {
                     _blitMaterial = new Material(Shader.Find("Hidden/TFLite/Resize"));

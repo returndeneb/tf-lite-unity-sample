@@ -36,7 +36,6 @@ public class HandTrackingSample : MonoBehaviour
     {
         palmDetect = new PalmDetect(palmModelFile);
         landmarkDetect = new HandLandmarkDetect(landmarkModelFile);
-        Debug.Log($"landmark dimension: {landmarkDetect.Dim}");
 
         draw = new PrimitiveDraw();
 
