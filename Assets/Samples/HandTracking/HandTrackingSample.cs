@@ -40,13 +40,13 @@ public class HandTrackingSample : MonoBehaviour
         draw = new PrimitiveDraw();
 
         var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.OnTextureUpdate.AddListener(OnTextureUpdate);
+        webCamInput.onTextureUpdate.AddListener(OnTextureUpdate);
     }
 
     private void OnDestroy()
     {
         var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.OnTextureUpdate.RemoveListener(OnTextureUpdate);
+        webCamInput.onTextureUpdate.RemoveListener(OnTextureUpdate);
 
         palmDetect?.Dispose();
         landmarkDetect?.Dispose();
@@ -84,7 +84,7 @@ public class HandTrackingSample : MonoBehaviour
     private void Invoke(Texture texture)
     {
         palmDetect.Invoke(texture);
-        cameraView.material = palmDetect.transformMat;
+        cameraView.material = palmDetect.TransformMat;
         cameraView.rectTransform.GetWorldCorners(rtCorners);
 
         palmResults = palmDetect.GetResults(0.7f, 0.3f);
@@ -94,7 +94,7 @@ public class HandTrackingSample : MonoBehaviour
 
         // Detect only first palm
         landmarkDetect.Invoke(texture, palmResults[0]);
-        debugPalmView.texture = landmarkDetect.inputTex;
+        debugPalmView.texture = landmarkDetect.InputTex;
 
         landmarkResult = landmarkDetect.GetResult();
     }
@@ -102,13 +102,13 @@ public class HandTrackingSample : MonoBehaviour
     private async UniTask<bool> InvokeAsync(Texture texture)
     {
         palmResults = await palmDetect.InvokeAsync(texture, cancellationToken);
-        cameraView.material = palmDetect.transformMat;
+        cameraView.material = palmDetect.TransformMat;
         cameraView.rectTransform.GetWorldCorners(rtCorners);
 
         if (palmResults.Count <= 0) return false;
 
         landmarkResult = await landmarkDetect.InvokeAsync(texture, palmResults[0], cancellationToken);
-        debugPalmView.texture = landmarkDetect.inputTex;
+        debugPalmView.texture = landmarkDetect.InputTex;
 
         return true;
     }

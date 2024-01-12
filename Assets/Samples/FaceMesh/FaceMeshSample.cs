@@ -53,13 +53,13 @@ public sealed class FaceMeshSample : MonoBehaviour
         }
 
         var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.OnTextureUpdate.AddListener(OnTextureUpdate);
+        webCamInput.onTextureUpdate.AddListener(OnTextureUpdate);
     }
 
     private void OnDestroy()
     {
         var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.OnTextureUpdate.RemoveListener(OnTextureUpdate);
+        webCamInput.onTextureUpdate.RemoveListener(OnTextureUpdate);
 
         faceDetect?.Dispose();
         faceMesh?.Dispose();
@@ -76,7 +76,7 @@ public sealed class FaceMeshSample : MonoBehaviour
         if (detectionResult == null || !useLandmarkToDetection)
         {
             faceDetect.Invoke(texture);
-            cameraView.material = faceDetect.transformMat;
+            cameraView.material = faceDetect.TransformMat;
             detectionResult = faceDetect.GetResults().FirstOrDefault();
 
             if (detectionResult == null)
@@ -86,7 +86,7 @@ public sealed class FaceMeshSample : MonoBehaviour
         }
 
         faceMesh.Invoke(texture, detectionResult);
-        croppedView.texture = faceMesh.inputTex;
+        croppedView.texture = faceMesh.InputTex;
         meshResult = faceMesh.GetResult();
 
         if (meshResult.score < 0.5f)

@@ -30,20 +30,20 @@ namespace TensorFlowLite
         protected readonly int height;
         protected readonly int channels;
         protected readonly T[,,] inputTensor;
-        protected readonly TextureToTensor tex2tensor;
+        protected readonly TextureToTensor tex2Tensor;
         protected readonly TextureResizer resizer;
         protected TextureResizer.ResizeOptions resizeOptions;
 
-        public Texture inputTex
+        public Texture InputTex
         {
             get
             {
-                return (tex2tensor.texture != null)
-                    ? tex2tensor.texture as Texture
-                    : resizer.texture as Texture;
+                return (tex2Tensor.texture != null)
+                    ? tex2Tensor.texture as Texture
+                    : resizer.Texture as Texture;
             }
         }
-        public Material transformMat => resizer.material;
+        public Material TransformMat => resizer.Material;
 
         public TextureResizer.ResizeOptions ResizeOptions
         {
@@ -81,7 +81,7 @@ namespace TensorFlowLite
                 interpreter.AllocateTensors();
             }
 
-            tex2tensor = new TextureToTensor();
+            tex2Tensor = new TextureToTensor();
             resizer = new TextureResizer();
             resizeOptions = new TextureResizer.ResizeOptions()
             {
@@ -143,7 +143,7 @@ namespace TensorFlowLite
         public virtual void Dispose()
         {
             interpreter?.Dispose();
-            tex2tensor?.Dispose();
+            tex2Tensor?.Dispose();
             resizer?.Dispose();
         }
 
@@ -152,31 +152,31 @@ namespace TensorFlowLite
         protected void ToTensor(Texture inputTex, float[,,] inputs)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2tensor.ToTensor(tex, inputs);
+            tex2Tensor.ToTensor(tex, inputs);
         }
 
         protected void ToTensor(RenderTexture inputTex, float[,,] inputs, bool resize)
         {
             RenderTexture tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
-            tex2tensor.ToTensor(tex, inputs);
+            tex2Tensor.ToTensor(tex, inputs);
         }
 
         protected void ToTensor(Texture inputTex, float[,,] inputs, float offset, float scale)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2tensor.ToTensor(tex, inputs, offset, scale);
+            tex2Tensor.ToTensor(tex, inputs, offset, scale);
         }
 
         protected void ToTensor(Texture inputTex, sbyte[,,] inputs)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2tensor.ToTensor(tex, inputs);
+            tex2Tensor.ToTensor(tex, inputs);
         }
 
         protected void ToTensor(Texture inputTex, int[,,] inputs)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2tensor.ToTensor(tex, inputs);
+            tex2Tensor.ToTensor(tex, inputs);
         }
 
         // ToTensorAsync methods are only available when UniTask is installed via Unity Package Manager.
@@ -185,28 +185,28 @@ namespace TensorFlowLite
         protected async UniTask<bool> ToTensorAsync(Texture inputTex, float[,,] inputs, CancellationToken cancellationToken)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            await tex2tensor.ToTensorAsync(tex, inputs, cancellationToken);
+            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
             return true;
         }
 
         protected async UniTask<bool> ToTensorAsync(RenderTexture inputTex, float[,,] inputs, bool resize, CancellationToken cancellationToken)
         {
             RenderTexture tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
-            await tex2tensor.ToTensorAsync(tex, inputs, cancellationToken);
+            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
             return true;
         }
 
         protected async UniTask<bool> ToTensorAsync(Texture inputTex, sbyte[,,] inputs, CancellationToken cancellationToken)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            await tex2tensor.ToTensorAsync(tex, inputs, cancellationToken);
+            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
             return true;
         }
 
         protected async UniTask<bool> ToTensorAsync(Texture inputTex, int[,,] inputs, CancellationToken cancellationToken)
         {
             RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            await tex2tensor.ToTensorAsync(tex, inputs, cancellationToken);
+            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
             return true;
         }
 #endif // TFLITE_UNITASK_ENABLED

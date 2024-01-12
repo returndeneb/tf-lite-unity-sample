@@ -26,7 +26,7 @@ namespace TensorFlowLite
 
         public PoseDetect.Result PoseResult => poseResult;
         public PoseLandmarkDetect.Result LandmarkResult => landmarkResult;
-        public Texture LandmarkInputTexture => poseLandmark.inputTex;
+        public Texture LandmarkInputTexture => poseLandmark.InputTex;
 
         private readonly Options options;
 

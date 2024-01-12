@@ -46,12 +46,12 @@ public sealed class BlazePoseSample : MonoBehaviour
 
         cancellationToken = this.GetCancellationTokenOnDestroy();
 
-        GetComponent<WebCamInput>().OnTextureUpdate.AddListener(OnTextureUpdate);
+        GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
     }
 
     private void OnDestroy()
     {
-        GetComponent<WebCamInput>().OnTextureUpdate.RemoveListener(OnTextureUpdate);
+        GetComponent<WebCamInput>().onTextureUpdate.RemoveListener(OnTextureUpdate);
         pose?.Dispose();
         drawer?.Dispose();
     }

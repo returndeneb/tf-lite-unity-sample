@@ -3,63 +3,61 @@ using TensorFlowLite;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// <summary>
-/// BlazeFace from MediaPile
-/// https://github.com/google/mediapipe
-/// https://viz.mediapipe.dev/demo/face_detection
-/// </summary>
-[RequireComponent(typeof(WebCamInput))]
-public class FaceDetectionSample : MonoBehaviour
+namespace Samples.FaceMesh
 {
-
-    [SerializeField]
-    private RawImage cameraView;
-
-    private FaceDetect faceDetect;
-    private List<FaceDetect.Result> results;
-    private PrimitiveDraw draw;
-    private readonly Vector3[] rtCorners = new Vector3[4];
-
-    private void Start()
+    [RequireComponent(typeof(WebCamInput))]
+    public class FaceDetectionSample : MonoBehaviour
     {
-        faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
-        draw = new PrimitiveDraw(Camera.main, gameObject.layer);
-        draw.color = Color.blue;
-        GetComponent<WebCamInput>().OnTextureUpdate.AddListener(OnTextureUpdate);
-        cameraView.material = faceDetect.transformMat;
-        cameraView.rectTransform.GetWorldCorners(rtCorners);
-    }
 
-    private void OnDestroy()
-    {
-        GetComponent<WebCamInput>().OnTextureUpdate.RemoveListener(OnTextureUpdate);
-        faceDetect?.Dispose();
-        draw?.Dispose();
-    }
+        [SerializeField]
+        private RawImage cameraView;
 
-    private void Update()
-    {
-        DrawResults(results);
-    }
+        private FaceDetect faceDetect;
+        private List<FaceDetect.Result> results;
+        private PrimitiveDraw draw;
+        private readonly Vector3[] rtCorners = new Vector3[4];
 
-    private void OnTextureUpdate(Texture texture)
-    {
-        faceDetect.Invoke(texture);
-        results = faceDetect.GetResults();
-    }
-
-    private void DrawResults(List<FaceDetect.Result> results)
-    {
-        if (results == null || results.Count == 0) return;
-        foreach (var result in results)
+        private void Start()
         {
-            Rect rect = MathTF.Lerp(rtCorners[0], rtCorners[2], result.rect, true);
-            draw.Rect(rect, 0.05f);
-            foreach (Vector2 p in result.keypoints)
-            {
-                draw.Point(MathTF.Lerp(rtCorners[0], rtCorners[2], new Vector3(p.x, 1f - p.y, 0)), 0.1f);
-            }
+            faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
+            draw = new PrimitiveDraw(Camera.main, gameObject.layer);
+            draw.color = Color.blue;
+            GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
+            cameraView.material = faceDetect.TransformMat;
+            cameraView.rectTransform.GetWorldCorners(rtCorners);
         }
-        draw.Apply();
+
+        private void OnDestroy()
+        {
+            GetComponent<WebCamInput>().onTextureUpdate.RemoveListener(OnTextureUpdate);
+            faceDetect?.Dispose();
+            draw?.Dispose();
+        }
+
+        private void Update()
+        {
+            DrawResults(results);
+        }
+
+        private void OnTextureUpdate(Texture texture)
+        {
+            faceDetect.Invoke(texture);
+            results = faceDetect.GetResults();
+        }
+
+        private void DrawResults(List<FaceDetect.Result> faceResults)
+        {
+            if (faceResults == null || faceResults.Count == 0) return;
+            foreach (var result in faceResults)
+            {
+                var rect = MathTF.Lerp(rtCorners[0], rtCorners[2], result.rect, true);
+                draw.Rect(rect, 0.05f);
+                foreach (var p in result.keypoints)
+                {
+                    draw.Point(MathTF.Lerp(rtCorners[0], rtCorners[2], new Vector3(p.x, 1f - p.y, 0)), 0.1f);
+                }
+            }
+            draw.Apply();
+        }
     }
 }

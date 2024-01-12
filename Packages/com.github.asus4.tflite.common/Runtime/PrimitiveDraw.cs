@@ -42,7 +42,6 @@ namespace TensorFlowLite
                     var newBuffer = new Matrix4x4[buffer.Length * 2];
                     System.Array.Copy(buffer, newBuffer, buffer.Length);
                     buffer = newBuffer;
-                    Debug.Log($"Allocate new buffer: {newBuffer.Length} mesh: {mesh.name}");
                 }
             }
         }
