@@ -105,6 +105,7 @@ namespace TensorFlowLite
             });
 #endif
             UnityEngine.Debug.LogWarning("GPU Delegate is not supported on this platform");
+            
             return null;
         }
 #pragma warning restore CS0162 // Unreachable code detected    

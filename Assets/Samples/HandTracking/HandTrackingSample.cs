@@ -34,6 +34,7 @@ public class HandTrackingSample : MonoBehaviour
 
     private void Start()
     {
+        print("testtssetss");
         palmDetect = new PalmDetect(palmModelFile);
         landmarkDetect = new HandLandmarkDetect(landmarkModelFile);
 

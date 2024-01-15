@@ -56,7 +56,6 @@ namespace TensorFlowLite
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
-            //
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
             interpreter.GetOutputTensorData(0, output0);

@@ -670,16 +670,18 @@ namespace TensorFlowLite
 
         public static Mesh CreateMesh()
         {
-            var mesh = new Mesh();
-            mesh.vertices = new Vector3[UV.Length];
-            mesh.triangles = TRIANGLES;
-            mesh.uv = UV;
+            var mesh = new Mesh
+            {
+                vertices = new Vector3[UV.Length],
+                triangles = TRIANGLES,
+                uv = UV
+            };
             return mesh;
         }
 
-        public static void UpdateMesh(Mesh mesh, Vector3[] faceKeypoints)
+        public static void UpdateMesh(Mesh mesh, Vector3[] faceKeyPoints)
         {
-            mesh.vertices = faceKeypoints;
+            mesh.vertices = faceKeyPoints;
             mesh.RecalculateBounds();
             mesh.RecalculateNormals();
         }

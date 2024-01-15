@@ -5,7 +5,6 @@ using UnityEngine.UI;
 
 namespace Samples.FaceMesh
 {
-    [RequireComponent(typeof(WebCamInput))]
     public class FaceDetectionSample : MonoBehaviour
     {
 
@@ -19,10 +18,12 @@ namespace Samples.FaceMesh
 
         private void Start()
         {
+            print("testtssetss");
             faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
             draw = new PrimitiveDraw(Camera.main, gameObject.layer);
-            draw.color = Color.blue;
+            
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
+            
             cameraView.material = faceDetect.TransformMat;
             cameraView.rectTransform.GetWorldCorners(rtCorners);
         }
@@ -38,12 +39,14 @@ namespace Samples.FaceMesh
         {
             DrawResults(results);
         }
-
+        
         private void OnTextureUpdate(Texture texture)
         {
+            cameraView.texture = texture;
             faceDetect.Invoke(texture);
             results = faceDetect.GetResults();
         }
+        
 
         private void DrawResults(List<FaceDetect.Result> faceResults)
         {

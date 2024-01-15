@@ -7,11 +7,6 @@ using UnityEngine.UI;
 [RequireComponent(typeof(WebCamInput))]
 public sealed class FaceMeshSample : MonoBehaviour
 {
-    [SerializeField, FilePopup("*.tflite")]
-    private string faceModelFile = "coco_ssd_mobilenet_quant.tflite";
-
-    [SerializeField, FilePopup("*.tflite")]
-    private string faceMeshModelFile = "coco_ssd_mobilenet_quant.tflite";
 
     [SerializeField]
     private bool useLandmarkToDetection = true;
@@ -36,11 +31,10 @@ public sealed class FaceMeshSample : MonoBehaviour
 
     private void Start()
     {
-        faceDetect = new FaceDetect(faceModelFile);
-        faceMesh = new FaceMesh(faceMeshModelFile);
+        faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
+        faceMesh = new FaceMesh("mediapipe/face_landmark.tflite");
         draw = new PrimitiveDraw(Camera.main, gameObject.layer);
-
-        // Create Face Mesh Renderer
+        cameraView.material = faceDetect.TransformMat;
         {
             var go = new GameObject("Face");
             go.transform.SetParent(transform);
@@ -53,14 +47,12 @@ public sealed class FaceMeshSample : MonoBehaviour
             faceKeypoints = new Vector3[FaceMesh.KEYPOINT_COUNT];
         }
 
-        var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.onTextureUpdate.AddListener(OnTextureUpdate);
+        GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
     }
 
     private void OnDestroy()
     {
-        var webCamInput = GetComponent<WebCamInput>();
-        webCamInput.onTextureUpdate.RemoveListener(OnTextureUpdate);
+        GetComponent<WebCamInput>().onTextureUpdate.RemoveListener(OnTextureUpdate);
 
         faceDetect?.Dispose();
         faceMesh?.Dispose();
@@ -77,7 +69,7 @@ public sealed class FaceMeshSample : MonoBehaviour
         if (detectionResult == null || !useLandmarkToDetection)
         {
             faceDetect.Invoke(texture);
-            cameraView.material = faceDetect.TransformMat;
+            cameraView.texture = texture;
             detectionResult = faceDetect.GetResults().FirstOrDefault();
 
             if (detectionResult == null)

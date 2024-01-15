@@ -121,7 +121,7 @@ namespace TensorFlowLite
             }
         }
 
-        public void Rect(Rect rect, float thickness, float z = 0)
+        public void Rect(Rect rect, float thickness, float z = -20)
         {
             if (rect.width <= 0 || rect.height <= 0) return;
             var p0 = new Vector3(rect.xMin, rect.yMin, z);
