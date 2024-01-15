@@ -18,7 +18,7 @@ public class TextureResizer : System.IDisposable
     static readonly int _VertTransform = Shader.PropertyToID("_VertTransform");
     static readonly int _UVRect = Shader.PropertyToID("_UVRect");
 
-    public RenderTexture Texture { get; private set; }
+    public RenderTexture outputTexture { get; private set; }
 
     public Material Material
     {
@@ -40,15 +40,11 @@ public class TextureResizer : System.IDisposable
         get => Material.GetMatrix(_VertTransform);
         set => Material.SetMatrix(_VertTransform, value);
     }
-
-    public TextureResizer()
-    {
-
-    }
+    
 
     public void Dispose()
     {
-        DisposeUtil.TryDispose(Texture);
+        DisposeUtil.TryDispose(outputTexture);
         DisposeUtil.TryDispose(blitMaterial);
     }
 
@@ -57,35 +53,29 @@ public class TextureResizer : System.IDisposable
     {
         VertexTransform = GetVertTransform(options.rotationDegree, options.mirrorHorizontal, options.mirrorVertical);
         UVRect = GetTextureST(texture, options);
-        return ApplyResize(texture, options.width, options.height, false);
+        return ApplyResize(texture, options.width, options.height);
     }
 
     public RenderTexture Resize(Texture texture,
-        int width, int height, bool fillBackground,
+        int width, int height,
         Matrix4x4 transform,
         Vector4 uvRect)
     {
         VertexTransform = transform;
         UVRect = uvRect;
-        return ApplyResize(texture, width, height, fillBackground);
+        return ApplyResize(texture, width, height);
     }
 
-    private RenderTexture ApplyResize(Texture texture, int width, int height, bool fillBackground)
+    private RenderTexture ApplyResize(Texture intputTexture, int outputWidth, int outputHeight)
     {
-        if (Texture == null || Texture.width != width || Texture.height != height)
+        if (outputTexture == null || outputTexture.width != outputWidth || outputTexture.height != outputHeight)
         {
-            DisposeUtil.TryDispose(Texture);
-            Texture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
+            DisposeUtil.TryDispose(outputTexture);
+            outputTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.ARGB32);
         }
-
-        if (fillBackground)
-        {
-            // Fill with color 0,0,0,0
-            Graphics.Blit(Texture2D.blackTexture, Texture);
-        }
-
-        Graphics.Blit(texture, Texture, Material, 0);
-        return Texture;
+        
+        Graphics.Blit(intputTexture, outputTexture, Material, 0);
+        return outputTexture;
     }
 
     public static Vector4 GetTextureSt(float srcAspect, float dstAspect, AspectMode mode)

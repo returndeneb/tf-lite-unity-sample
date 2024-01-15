@@ -1,12 +1,10 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using TensorFlowLite;
 using UnityEngine;
 
-namespace TensorFlowLite
+namespace Samples.FaceMesh
 {
-
-
     public class FaceDetect : BaseImagePredictor<float>
     {
         public enum KeyPoint

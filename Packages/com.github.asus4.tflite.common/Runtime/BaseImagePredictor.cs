@@ -40,7 +40,7 @@ namespace TensorFlowLite
             {
                 return (tex2Tensor.texture != null)
                     ? tex2Tensor.texture as Texture
-                    : resizer.Texture as Texture;
+                    : resizer.outputTexture as Texture;
             }
         }
         public Material TransformMat => resizer.Material;

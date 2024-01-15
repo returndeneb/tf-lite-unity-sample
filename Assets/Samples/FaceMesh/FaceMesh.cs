@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Samples.FaceMesh;
 using UnityEngine;
 
 namespace TensorFlowLite
@@ -50,7 +51,7 @@ namespace TensorFlowLite
             });
 
             RenderTexture rt = resizer.Resize(
-                inputTex, resizeOptions.width, resizeOptions.height, true,
+                inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);

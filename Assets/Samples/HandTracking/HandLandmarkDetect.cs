@@ -73,7 +73,7 @@ namespace TensorFlowLite
             });
 
             RenderTexture rt = resizer.Resize(
-                inputTex, resizeOptions.width, resizeOptions.height, true,
+                inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
@@ -98,7 +98,7 @@ namespace TensorFlowLite
             });
 
             RenderTexture rt = resizer.Resize(
-                inputTex, resizeOptions.width, resizeOptions.height, true,
+                inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
             await ToTensorAsync(rt, inputTensor, false, cancellationToken);
