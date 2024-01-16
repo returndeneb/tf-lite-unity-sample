@@ -121,7 +121,7 @@ namespace TensorFlowLite
             }
         }
 
-        public void Rect(Rect rect, float thickness, float z = -20)
+        public void Rect(Rect rect, float thickness=0.05f, float z = -20)
         {
             if (rect.width <= 0 || rect.height <= 0) return;
             var p0 = new Vector3(rect.xMin, rect.yMin, z);
@@ -139,7 +139,7 @@ namespace TensorFlowLite
             quad.Add(mtx);
         }
 
-        public void Point(Vector3 p, float thickness)
+        public void Point(Vector3 p, float thickness=0.1f)
         {
             var mtx = Matrix4x4.TRS(
                 p,

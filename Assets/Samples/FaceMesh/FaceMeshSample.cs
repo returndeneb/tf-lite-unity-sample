@@ -117,11 +117,13 @@ public sealed class FaceMeshSample : MonoBehaviour
         {
             // Draw face
             draw.color = Color.green;
-            float zScale = (max.x - min.x) / 2;
+            var zScale = (max.x - min.x) / 2;
             for (int i = 0; i < face.keypoints.Length; i++)
             {
                 Vector3 kp = face.keypoints[i];
                 kp.y = 1f - kp.y;
+                print(kp.y);
+                print(1f-kp.y);
 
                 Vector3 p = MathTF.Lerp(min, max, kp);
                 p.z = face.keypoints[i].z * zScale;

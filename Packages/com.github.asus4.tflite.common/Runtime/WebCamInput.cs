@@ -28,7 +28,6 @@ public sealed class WebCamInput : MonoBehaviour
         var cameraName = Application.isEditor
             ? editorCameraName
             : WebCamUtil.FindName(preferKind, isFrontFacing);
-
         WebCamDevice device = default;
         for (var i = 0; i < devices.Length; i++)
         {
