@@ -37,7 +37,7 @@ namespace Holistic
             throw new System.NotImplementedException("Use Invoke(Texture inputTex, FaceDetect.Result palm)");
         }
 
-        public void Invoke(Texture inputTex, Samples.FaceMesh.FaceDetect.Result face)
+        public void Invoke(Texture inputTex, FaceDetect.Result face)
         {
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
@@ -111,9 +111,9 @@ namespace Holistic
             };
         }
 
-        private static float CalcFaceRotation(ref Samples.FaceMesh.FaceDetect.Result detection)
+        private static float CalcFaceRotation(ref FaceDetect.Result detection)
         {
-            var vec = detection.rightEye - detection.leftEye;
+            var vec = detection.RightEye - detection.LeftEye;
             return -Mathf.Atan2(vec.y, vec.x);
         }
     }
