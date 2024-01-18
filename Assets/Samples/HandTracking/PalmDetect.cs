@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using UnityEngine;
 using Cysharp.Threading.Tasks;
+using TensorFlowLite;
+using UnityEngine;
 
-namespace TensorFlowLite
+namespace Samples.HandTracking
 {
 
     public class PalmDetect : BaseImagePredictor<float>

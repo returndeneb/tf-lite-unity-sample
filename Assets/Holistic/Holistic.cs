@@ -15,14 +15,21 @@ namespace Holistic
         private FaceDetect.Result faceDetectResult;
         private FaceMesh faceMesh;
         private FaceMesh.Result faceMeshResult;
-        
+        private PalmDetect palmDetect;
+        private List<PalmDetect.Result> palmResults;
+        private HandLandmarkDetect landmarkDetect;
+        private HandLandmarkDetect.Result landmarkResult;
         private PrimitiveDraw draw;
         private readonly Vector3[] imgSize = new Vector3[4];
+        private bool isTextureNull;
 
         private void Start()
         {
             faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
             faceMesh = new FaceMesh("mediapipe/face_landmark.tflite");
+            palmDetect = new PalmDetect("mediapipe/palm_detection_builtin_256_float16_quant.tflite");
+            landmarkDetect = new HandLandmarkDetect("mediapipe/hand_landmark.tflite");
+            
             draw = new PrimitiveDraw(Camera.main, gameObject.layer);
             
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
@@ -33,22 +40,45 @@ namespace Holistic
             GetComponent<WebCamInput>().onTextureUpdate.RemoveListener(OnTextureUpdate);
             faceDetect?.Dispose();
             faceMesh?.Dispose();
+            palmDetect?.Dispose();
+            landmarkDetect?.Dispose();
             draw?.Dispose();
         }
         private void Update()
         {
+            DrawFace();
+            DrawHand();
+        }
+
+        private void DrawFace()
+        {
+            if (image.texture == null) return;
             faceDetect.Invoke(image.texture);
             faceDetectResult = faceDetect.GetResults().FirstOrDefault();
             if (faceDetectResult == null) return;
             faceMesh.Invoke(image.texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
             if (faceMeshResult == null) return;
-            Draw();
+            
+            for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
+            {
+                var p = MathTF.Lerp(imgSize[0], imgSize[2], faceMeshResult.keyPoints[i]);
+                p.z = faceMeshResult.keyPoints[i].z * (imgSize[2].x - imgSize[0].x) / 2;
+                draw.Point(p);
+            }
+            draw.Apply();
+        }
+        
+
+        private void DrawHand()
+        {
+            if (image.texture == null) return;
+            palmResults = palmDetect.GetResults();
+            
         }
         
         private void OnTextureUpdate(Texture texture)
         {
-            // print(texture.height);
             image.texture = texture;
             image.rectTransform.GetWorldCorners(imgSize); //Image.rectTranform 데이터가 input, imgSize가 output
         }
@@ -56,23 +86,7 @@ namespace Holistic
 
         private void Draw()
         {
-            var rect = MathTF.Lerp(imgSize[0], imgSize[2], faceDetectResult.rect, true);
-            draw.Rect(rect);
-            foreach (var p in faceDetectResult.keyPoints)
-            {
-                var keyPoint = MathTF.Lerp(imgSize[0], imgSize[2], new Vector2(p.x, 1f - p.y));
-                draw.Point(keyPoint);
-            }
             
-            var zScale = (imgSize[2].x - imgSize[0].x) / 2;
-            for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
-            {
-                var p = MathTF.Lerp(imgSize[2], imgSize[2], faceMeshResult.keyPoints[i]);
-                p.z = faceMeshResult.keyPoints[i].z * zScale;
-                draw.Point(p, 0.05f);
-            }
-            
-            draw.Apply();
             
         }
     }

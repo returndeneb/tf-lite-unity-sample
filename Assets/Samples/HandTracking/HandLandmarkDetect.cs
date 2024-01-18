@@ -1,9 +1,9 @@
 ﻿using System.Threading;
-using UnityEngine;
 using Cysharp.Threading.Tasks;
+using TensorFlowLite;
+using UnityEngine;
 
-
-namespace TensorFlowLite
+namespace Samples.HandTracking
 {
     public class HandLandmarkDetect : BaseImagePredictor<float>
     {

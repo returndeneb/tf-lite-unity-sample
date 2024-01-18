@@ -43,7 +43,7 @@ namespace TensorFlowLite
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = face.rect,
-                rotationDegree = CalcFaceRotation(ref face) * Mathf.Rad2Deg,
+                rotationDegree = CalcFaceRotation(ref face) ,
                 shift = FaceShift,
                 scale = FaceScale,
                 mirrorHorizontal = resizeOptions.mirrorHorizontal,
@@ -115,7 +115,8 @@ namespace TensorFlowLite
         private static float CalcFaceRotation(ref FaceDetect.Result detection)
         {
             var vec = detection.rightEye - detection.leftEye;
-            return -Mathf.Atan2(vec.y, vec.x);
+            // Debug.Log(-Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg);
+            return -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg;
         }
     }
 }

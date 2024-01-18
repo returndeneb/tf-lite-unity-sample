@@ -139,7 +139,7 @@ namespace TensorFlowLite
             quad.Add(mtx);
         }
 
-        public void Point(Vector3 p, float thickness=0.1f)
+        public void Point(Vector3 p, float thickness=0.05f)
         {
             var mtx = Matrix4x4.TRS(
                 p,

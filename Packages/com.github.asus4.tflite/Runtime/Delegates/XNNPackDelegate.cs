@@ -73,7 +73,7 @@ namespace TensorFlowLite
 
         public XNNPackDelegate(Options options)
         {
-            UnityEngine.Debug.Log("XNNPackDelegate Created");
+            // UnityEngine.Debug.Log("XNNPackDelegate Created");
             Delegate = TfLiteXNNPackDelegateCreate(ref options);
         }
 

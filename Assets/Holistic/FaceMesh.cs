@@ -23,7 +23,7 @@ namespace Holistic
         public Matrix4x4 CropMatrix => cropMatrix;
 
 
-        public FaceMesh(string modelPath) : base(modelPath, Accelerator.GPU)
+        public FaceMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             result = new Result()
             {
@@ -42,7 +42,7 @@ namespace Holistic
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = face.rect,
-                rotationDegree = CalcFaceRotation(ref face) * Mathf.Rad2Deg,
+                rotationDegree = GetFaceAngle(face),
                 shift = FaceShift,
                 scale = FaceScale,
                 mirrorHorizontal = resizeOptions.mirrorHorizontal,
@@ -63,16 +63,16 @@ namespace Holistic
 
         public Result GetResult()
         {
-            const float SCALE = 1f / 192f;
+            const float scale = 1f / 192f;
             var mtx = cropMatrix.inverse;
 
             result.score = output1[0];
             for (var i = 0; i < KeypointCount; i++)
             {
                 result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                    output0[i, 0] * SCALE,
-                    1f - output0[i, 1] * SCALE,
-                    output0[i, 2] * SCALE
+                    output0[i, 0] * scale,
+                    1f - output0[i, 1] * scale,
+                    output0[i, 2] * scale
                 ));
             }
             return result;
@@ -111,10 +111,11 @@ namespace Holistic
             };
         }
 
-        private static float CalcFaceRotation(ref FaceDetect.Result detection)
+        private static float GetFaceAngle(FaceDetect.Result detection)
         {
             var vec = detection.RightEye - detection.LeftEye;
-            return -Mathf.Atan2(vec.y, vec.x);
+            // Debug.Log(-Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg);
+            return -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg;
         }
     }
 }

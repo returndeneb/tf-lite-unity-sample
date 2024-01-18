@@ -30,7 +30,7 @@ namespace TensorFlowLite
             {
                 sb.AppendLine($"Output [{i}]: {interpreter.GetOutputTensorInfo(i)}");
             }
-            UnityEngine.Debug.Log(sb.ToString());
+            // UnityEngine.Debug.Log(sb.ToString());
         }
 
         /// <summary>

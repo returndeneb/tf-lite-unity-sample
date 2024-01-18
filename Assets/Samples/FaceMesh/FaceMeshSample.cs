@@ -121,10 +121,7 @@ public sealed class FaceMeshSample : MonoBehaviour
             for (int i = 0; i < face.keypoints.Length; i++)
             {
                 Vector3 kp = face.keypoints[i];
-                kp.y = 1f - kp.y;
-                print(kp.y);
-                print(1f-kp.y);
-
+                // kp.y = 1f - kp.y;
                 Vector3 p = MathTF.Lerp(min, max, kp);
                 p.z = face.keypoints[i].z * zScale;
 

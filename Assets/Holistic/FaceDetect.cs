@@ -44,7 +44,7 @@ namespace Holistic
         private readonly List<Result> results = new ();
         private readonly List<Result> filteredResults = new ();
 
-        public FaceDetect(string modelPath) : base(modelPath, Accelerator.GPU)
+        public FaceDetect(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             var options = new SsdAnchorsCalculator.Options()
             {
