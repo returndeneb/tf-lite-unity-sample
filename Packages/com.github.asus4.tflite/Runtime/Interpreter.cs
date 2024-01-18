@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using UnityEngine;
 using TfLiteInterpreter = System.IntPtr;
 using TfLiteInterpreterOptions = System.IntPtr;
 using TfLiteModel = System.IntPtr;
@@ -216,6 +217,7 @@ namespace TensorFlowLite
             switch (status)
             {
                 case Status.Ok:
+                    Debug.Log("Ok");
                     return;
                 case Status.Error:
                     throw new Exception("TensorFlowLite operation failed.");

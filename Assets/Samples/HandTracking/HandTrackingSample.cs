@@ -32,7 +32,6 @@ namespace Samples.HandTracking
 
         private void Start()
         {
-            print("testtssetss");
             palmDetect = new PalmDetect("mediapipe/palm_detection_builtin_256_float16_quant.tflite");
             landmarkDetect = new HandLandmarkDetect("mediapipe/hand_landmark.tflite");
 

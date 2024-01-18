@@ -84,7 +84,7 @@ namespace Holistic
             interpreter.GetOutputTensorData(1, output1);
         }
 
-        public List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
+        public IEnumerable<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
         {
             results.Clear();
 

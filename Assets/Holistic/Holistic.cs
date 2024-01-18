@@ -4,6 +4,7 @@ using TensorFlowLite;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using System.Collections;
 
 namespace Holistic
 {
@@ -21,6 +22,7 @@ namespace Holistic
         private HandLandmarkDetect.Result landmarkResult;
         private PrimitiveDraw draw;
         private readonly Vector3[] imgSize = new Vector3[4];
+        private readonly Vector3[] worldJoints = new Vector3[HandLandmarkDetect.JOINT_COUNT];
         private bool isTextureNull;
 
         private void Start()
@@ -33,7 +35,7 @@ namespace Holistic
             draw = new PrimitiveDraw(Camera.main, gameObject.layer);
             
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
-            image.material = faceDetect.TransformMat;
+            
         }
         private void OnDestroy()
         {
@@ -46,13 +48,18 @@ namespace Holistic
         }
         private void Update()
         {
-            DrawFace();
+            // DrawFace();
             DrawHand();
+            draw.Apply();
+            
         }
 
         private void DrawFace()
         {
+            
             if (image.texture == null) return;
+            image.material = faceDetect.TransformMat;
+            image.rectTransform.GetWorldCorners(imgSize);
             faceDetect.Invoke(image.texture);
             faceDetectResult = faceDetect.GetResults().FirstOrDefault();
             if (faceDetectResult == null) return;
@@ -66,28 +73,37 @@ namespace Holistic
                 p.z = faceMeshResult.keyPoints[i].z * (imgSize[2].x - imgSize[0].x) / 2;
                 draw.Point(p);
             }
-            draw.Apply();
         }
         
-
         private void DrawHand()
         {
             if (image.texture == null) return;
-            palmResults = palmDetect.GetResults();
+            image.material = palmDetect.TransformMat;
+            image.rectTransform.GetWorldCorners(imgSize);
+            palmDetect.Invoke(image.texture);
+            // palmResults = palmDetect.GetResults();
             
+            // if (palmResults.Count <= 0) return;
+            // landmarkDetect.Invoke(image.texture, palmResults[0]);
+            // landmarkResult = landmarkDetect.GetResult();
+            // if (landmarkResult == null) return;
+            
+            // for (var i = 0; i < HandLandmarkDetect.JOINT_COUNT; i++)
+            // {
+            //     var p1 = MathTF.Lerp(imgSize[0], imgSize[2], landmarkResult.joints[i]);
+            //     p1.z += (landmarkResult.joints[i].z - 0.5f) * (imgSize[2].x - imgSize[0].x);
+            //     draw.Point(p1,0.1f);
+            // }
         }
         
         private void OnTextureUpdate(Texture texture)
         {
-            image.texture = texture;
-            image.rectTransform.GetWorldCorners(imgSize); //Image.rectTranform 데이터가 input, imgSize가 output
+        //     UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        //     {
+        //         image.texture = texture;
+        //         print("test");
+        //     });
         }
         
-
-        private void Draw()
-        {
-            
-            
-        }
     }
 }

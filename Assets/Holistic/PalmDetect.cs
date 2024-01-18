@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TensorFlowLite;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Holistic
 {
@@ -17,7 +19,7 @@ namespace Holistic
             public Vector2[] keypoints;
         }
 
-        public const int MAX_PALM_NUM = 4;
+        private const int MaxPalmNum = 4;
 
         // classificators / scores
         private readonly float[] output0 = new float[2944];
@@ -43,8 +45,8 @@ namespace Holistic
                 anchorOffsetY = 0.5f,
 
                 numLayers = 5,
-                featureMapWidth = new int[0],
-                featureMapHeight = new int[0],
+                featureMapWidth = Array.Empty<int>(),
+                featureMapHeight = Array.Empty<int>(),
                 strides = new int[] { 8, 16, 32, 32, 32 },
 
                 aspectRatios = new float[] { 1.0f },
@@ -65,12 +67,11 @@ namespace Holistic
             // ToTensor(inputTex, input0, OFFSET, SCALE);
             ToTensor(inputTex, inputTensor);
 
-
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
-
-            interpreter.GetOutputTensorData(0, output0);
-            interpreter.GetOutputTensorData(1, output1);
+            //
+            // interpreter.GetOutputTensorData(0, output0);
+            // interpreter.GetOutputTensorData(1, output1);
         }
 
         public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
@@ -84,56 +85,56 @@ namespace Holistic
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
 
-            var results = GetResults();
+            var invokeAsync = GetResults();
 
             await UniTask.SwitchToMainThread(cancellationToken);
-            return results;
+            return invokeAsync;
         }
 
-        public List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
+        private List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
         {
             results.Clear();
 
-            for (int i = 0; i < anchors.Length; i++)
+            for (var i = 0; i < anchors.Length; i++)
             {
-                float score = MathTF.Sigmoid(output0[i]);
+                var score = MathTF.Sigmoid(output0[i]);
                 if (score < scoreThreshold)
                 {
                     continue;
                 }
 
-                SsdAnchor anchor = anchors[i];
+                var anchor = anchors[i];
 
-                float sx = output1[i, 0];
-                float sy = output1[i, 1];
-                float w = output1[i, 2];
-                float h = output1[i, 3];
+                var sx = output1[i, 0];
+                var sy = output1[i, 1];
+                var w = output1[i, 2];
+                var h = output1[i, 3];
 
-                float cx = sx + anchor.x * width;
-                float cy = sy + anchor.y * height;
+                var cx = sx + anchor.x * width;
+                var cy = sy + anchor.y * height;
 
-                cx /= (float)width;
-                cy /= (float)height;
-                w /= (float)width;
-                h /= (float)height;
+                cx /= width;
+                cy /= height;
+                w /= width;
+                h /= height;
 
-                var keypoints = new Vector2[7];
-                for (int j = 0; j < 7; j++)
+                var keyPoints = new Vector2[7];
+                for (var j = 0; j < 7; j++)
                 {
-                    float lx = output1[i, 4 + (2 * j) + 0];
-                    float ly = output1[i, 4 + (2 * j) + 1];
+                    var lx = output1[i, 4 + (2 * j) + 0];
+                    var ly = output1[i, 4 + (2 * j) + 1];
                     lx += anchor.x * width;
                     ly += anchor.y * height;
-                    lx /= (float)width;
-                    ly /= (float)height;
-                    keypoints[j] = new Vector2(lx, ly);
+                    lx /= width;
+                    ly /= height;
+                    keyPoints[j] = new Vector2(lx, ly);
                 }
 
                 results.Add(new Result()
                 {
                     score = score,
                     rect = new Rect(cx - w * 0.5f, cy - h * 0.5f, w, h),
-                    keypoints = keypoints,
+                    keypoints = keyPoints,
                 });
 
             }
@@ -141,30 +142,26 @@ namespace Holistic
             return NonMaxSuppression(results, iouThreshold);
         }
 
-        private static List<Result> NonMaxSuppression(List<Result> palms, float iou_threshold)
+        private static List<Result> NonMaxSuppression(IEnumerable<Result> palms, float iouThreshold)
         {
             var filtered = new List<Result>();
 
-            foreach (Result originalPalm in palms.OrderByDescending(o => o.score))
+            foreach (var originalPalm in palms.OrderByDescending(o => o.score))
             {
-                bool ignore_candidate = false;
-                foreach (Result newPalm in filtered)
+                var ignoreCandidate = false;
+                foreach (var newPalm in filtered)
                 {
-                    float iou = originalPalm.rect.IntersectionOverUnion(newPalm.rect);
-                    if (iou >= iou_threshold)
-                    {
-                        ignore_candidate = true;
-                        break;
-                    }
+                    var iou = originalPalm.rect.IntersectionOverUnion(newPalm.rect);
+                    if (!(iou >= iouThreshold)) continue;
+                    ignoreCandidate = true;
+                    break;
                 }
 
-                if (!ignore_candidate)
+                if (ignoreCandidate) continue;
+                filtered.Add(originalPalm);
+                if (filtered.Count >= MaxPalmNum)
                 {
-                    filtered.Add(originalPalm);
-                    if (filtered.Count >= MAX_PALM_NUM)
-                    {
-                        break;
-                    }
+                    break;
                 }
             }
 

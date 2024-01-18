@@ -60,19 +60,19 @@ namespace Holistic
             throw new System.NotImplementedException("Use Invoke(Texture inputTex, PalmDetect.Palm palm)");
         }
 
-        public void Invoke(Texture inputTex, Samples.HandTracking.PalmDetect.Result palm)
+        public void Invoke(Texture inputTex, PalmDetect.Result palm)
         {
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = palm.rect,
-                rotationDegree = CalcHandRotation(ref palm) * Mathf.Rad2Deg,
+                rotationDegree = CalcHandRotation(palm),
                 shift = PalmShift,
                 scale = PalmScale,
                 mirrorHorizontal = resizeOptions.mirrorHorizontal,
                 mirrorVertical = resizeOptions.mirrorVertical,
             });
 
-            RenderTexture rt = resizer.Resize(
+            var rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
@@ -85,19 +85,19 @@ namespace Holistic
             interpreter.GetOutputTensorData(1, output1);
         }
 
-        public async UniTask<Result> InvokeAsync(Texture inputTex, Samples.HandTracking.PalmDetect.Result palm, CancellationToken cancellationToken)
+        public async UniTask<Result> InvokeAsync(Texture inputTex, PalmDetect.Result palm, CancellationToken cancellationToken)
         {
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = palm.rect,
-                rotationDegree = CalcHandRotation(ref palm) * Mathf.Rad2Deg,
+                rotationDegree = CalcHandRotation(palm),
                 shift = PalmShift,
                 scale = PalmScale,
                 mirrorHorizontal = resizeOptions.mirrorHorizontal,
                 mirrorVertical = resizeOptions.mirrorVertical,
             });
 
-            RenderTexture rt = resizer.Resize(
+            var rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
@@ -146,12 +146,11 @@ namespace Holistic
             return result;
         }
 
-        private static float CalcHandRotation(ref Samples.HandTracking.PalmDetect.Result detection)
+        private static float CalcHandRotation(PalmDetect.Result detection)
         {
             // Rotation based on Center of wrist - Middle finger
-            const float RAD_90 = 90f * Mathf.Deg2Rad;
             var vec = detection.keypoints[0] - detection.keypoints[2];
-            return -(RAD_90 + Mathf.Atan2(vec.y, vec.x));
+            return -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg;
         }
     }
 }
