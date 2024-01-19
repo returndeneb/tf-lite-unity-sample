@@ -217,7 +217,7 @@ namespace TensorFlowLite
             switch (status)
             {
                 case Status.Ok:
-                    Debug.Log("Ok");
+                    // Debug.Log("Ok");
                     return;
                 case Status.Error:
                     throw new Exception("TensorFlowLite operation failed.");

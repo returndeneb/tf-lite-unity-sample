@@ -69,9 +69,9 @@ namespace Holistic
 
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
-            //
-            // interpreter.GetOutputTensorData(0, output0);
-            // interpreter.GetOutputTensorData(1, output1);
+            
+            interpreter.GetOutputTensorData(0, output0);
+            interpreter.GetOutputTensorData(1, output1);
         }
 
         public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
@@ -91,7 +91,7 @@ namespace Holistic
             return invokeAsync;
         }
 
-        private List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
+        public List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
         {
             results.Clear();
 

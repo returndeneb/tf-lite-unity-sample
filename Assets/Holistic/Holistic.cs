@@ -48,7 +48,7 @@ namespace Holistic
         }
         private void Update()
         {
-            // DrawFace();
+            DrawFace();
             DrawHand();
             draw.Apply();
             
@@ -81,28 +81,26 @@ namespace Holistic
             image.material = palmDetect.TransformMat;
             image.rectTransform.GetWorldCorners(imgSize);
             palmDetect.Invoke(image.texture);
-            // palmResults = palmDetect.GetResults();
+            palmResults = palmDetect.GetResults();
             
-            // if (palmResults.Count <= 0) return;
-            // landmarkDetect.Invoke(image.texture, palmResults[0]);
-            // landmarkResult = landmarkDetect.GetResult();
-            // if (landmarkResult == null) return;
+            if (palmResults.Count <= 0) return;
+            landmarkDetect.Invoke(image.texture, palmResults[0]);
+            landmarkResult = landmarkDetect.GetResult();
+            if (landmarkResult == null) return;
             
-            // for (var i = 0; i < HandLandmarkDetect.JOINT_COUNT; i++)
-            // {
-            //     var p1 = MathTF.Lerp(imgSize[0], imgSize[2], landmarkResult.joints[i]);
-            //     p1.z += (landmarkResult.joints[i].z - 0.5f) * (imgSize[2].x - imgSize[0].x);
-            //     draw.Point(p1,0.1f);
-            // }
+            for (var i = 0; i < HandLandmarkDetect.JOINT_COUNT; i++)
+            {
+                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], landmarkResult.joints[i]);
+                p1.z += (landmarkResult.joints[i].z - 0.5f) * (imgSize[2].x - imgSize[0].x);
+                draw.Point(p1,0.1f);
+            }
         }
         
         private void OnTextureUpdate(Texture texture)
         {
-        //     UnityMainThreadDispatcher.Instance().Enqueue(() =>
-        //     {
-        //         image.texture = texture;
-        //         print("test");
-        //     });
+        
+            image.texture = texture;
+            print("test");
         }
         
     }
