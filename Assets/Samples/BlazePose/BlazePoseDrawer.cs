@@ -17,7 +17,7 @@ namespace TensorFlowLite
             draw = new PrimitiveDraw(camera, layer);
             this.container = container;
             this.camera = camera;
-            viewportLandmarks = new Vector4[PoseLandmarkDetect.LandmarkCount];
+            viewportLandmarks = new Vector4[PoseMesh.LandmarkCount];
         }
 
         public void Dispose()
@@ -64,15 +64,15 @@ namespace TensorFlowLite
             draw.Apply();
         }
 
-        public void DrawLandmarkResult(PoseLandmarkDetect.Result result, float visibilityThreshold, float zOffset)
+        public void DrawLandmarkResult(PoseMesh.Result result, float visibilityThreshold, float zOffset)
         {
             if (result == null)
             {
                 return;
             }
-            
-            // draw.color = Color.blue;
-            
+
+            draw.color = Color.blue;
+
             Vector4[] landmarks = result.viewportLandmarks;
             // Update world joints
             for (int i = 0; i < landmarks.Length; i++)
@@ -80,7 +80,7 @@ namespace TensorFlowLite
                 Vector3 p = camera.ViewportToWorldPoint(landmarks[i]);
                 viewportLandmarks[i] = new Vector4(p.x, p.y, p.z + zOffset, landmarks[i].w);
             }
-            
+
             // Draw
             for (int i = 0; i < viewportLandmarks.Length; i++)
             {
@@ -90,7 +90,7 @@ namespace TensorFlowLite
                     draw.Cube(p, 0.2f);
                 }
             }
-            var connections = PoseLandmarkDetect.Connections;
+            var connections = PoseMesh.Connections;
             for (int i = 0; i < connections.Length; i += 2)
             {
                 var a = viewportLandmarks[connections[i]];
@@ -103,7 +103,7 @@ namespace TensorFlowLite
             draw.Apply();
         }
 
-        public void DrawWorldLandmarks(PoseLandmarkDetect.Result result, float visibilityThreshold)
+        public void DrawWorldLandmarks(PoseMesh.Result result, float visibilityThreshold)
         {
             Vector4[] landmarks = result.viewportLandmarks;
             draw.color = Color.cyan;
@@ -116,7 +116,7 @@ namespace TensorFlowLite
                     draw.Cube(p, 0.02f);
                 }
             }
-            var connections = PoseLandmarkDetect.Connections;
+            var connections = PoseMesh.Connections;
             for (int i = 0; i < connections.Length; i += 2)
             {
                 var a = landmarks[connections[i]];

@@ -32,7 +32,7 @@ public sealed class BlazePoseSample : MonoBehaviour
 
     private BlazePose pose;
     private PoseDetect.Result poseResult;
-    private PoseLandmarkDetect.Result landmarkResult;
+    private PoseMesh.Result landmarkResult;
     private BlazePoseDrawer drawer;
 
     private UniTask<bool> task;

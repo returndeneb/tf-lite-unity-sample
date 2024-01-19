@@ -11,21 +11,21 @@ namespace TensorFlowLite
         public class Options
         {
             public PoseDetect.Options detect;
-            public PoseLandmarkDetect.Options landmark;
+            public PoseMesh.Options landmark;
         }
 
         private readonly PoseDetect poseDetect;
-        private readonly PoseLandmarkDetect poseLandmark;
+        private readonly PoseMesh poseLandmark;
 
         private PoseDetect.Result poseResult = default;
-        private PoseLandmarkDetect.Result landmarkResult = default;
+        private PoseMesh.Result landmarkResult = default;
 
         private bool NeedsDetectionUpdate => poseResult == null || poseResult.score < 0.5f;
 
         public Matrix4x4 CropMatrix => poseLandmark.CropMatrix;
 
         public PoseDetect.Result PoseResult => poseResult;
-        public PoseLandmarkDetect.Result LandmarkResult => landmarkResult;
+        public PoseMesh.Result LandmarkResult => landmarkResult;
         public Texture LandmarkInputTexture => poseLandmark.InputTex;
 
         private readonly Options options;
@@ -37,7 +37,7 @@ namespace TensorFlowLite
             options.landmark.AspectMode = options.detect.aspectMode;
 
             poseDetect = new PoseDetect(options.detect);
-            poseLandmark = new PoseLandmarkDetect(options.landmark);
+            poseLandmark = new PoseMesh(options.landmark);
         }
 
         public void Dispose()
@@ -46,7 +46,7 @@ namespace TensorFlowLite
             poseLandmark?.Dispose();
         }
 
-        public PoseLandmarkDetect.Result Invoke(Texture texture)
+        public PoseMesh.Result Invoke(Texture texture)
         {
             if (NeedsDetectionUpdate)
             {
@@ -66,7 +66,7 @@ namespace TensorFlowLite
             }
             else
             {
-                poseResult = PoseLandmarkDetect.LandmarkToDetection(landmarkResult);
+                poseResult = PoseMesh.LandmarkToDetection(landmarkResult);
             }
 
             if (landmarkResult != null)
@@ -76,7 +76,7 @@ namespace TensorFlowLite
             return landmarkResult;
         }
 
-        public async UniTask<PoseLandmarkDetect.Result> InvokeAsync(Texture texture, CancellationToken cancellationToken)
+        public async UniTask<PoseMesh.Result> InvokeAsync(Texture texture, CancellationToken cancellationToken)
         {
             if (NeedsDetectionUpdate)
             {
@@ -99,7 +99,7 @@ namespace TensorFlowLite
             }
             else
             {
-                poseResult = PoseLandmarkDetect.LandmarkToDetection(landmarkResult);
+                poseResult = PoseMesh.LandmarkToDetection(landmarkResult);
             }
 
             if (landmarkResult != null)
