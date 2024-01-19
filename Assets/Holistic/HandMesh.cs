@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Holistic
 {
-    public class HandLandmarkDetect : BaseImagePredictor<float>
+    public class HandMesh : BaseImagePredictor<float>
     {
         public class Result
         {
@@ -32,7 +32,7 @@ namespace Holistic
         public Vector2 PalmScale { get; set; } = new Vector2(2.8f, 2.8f);
         public Matrix4x4 CropMatrix => cropMatrix;
 
-        public HandLandmarkDetect(string modelPath) : base(modelPath, Accelerator.NONE)
+        public HandMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             var out0info = interpreter.GetOutputTensorInfo(0);
             switch (out0info.shape[1])
@@ -60,7 +60,7 @@ namespace Holistic
             throw new System.NotImplementedException("Use Invoke(Texture inputTex, PalmDetect.Palm palm)");
         }
 
-        public void Invoke(Texture inputTex, PalmDetect.Result palm)
+        public void Invoke(Texture inputTex, HandDetect.Result palm)
         {
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
@@ -85,7 +85,7 @@ namespace Holistic
             interpreter.GetOutputTensorData(1, output1);
         }
 
-        public async UniTask<Result> InvokeAsync(Texture inputTex, PalmDetect.Result palm, CancellationToken cancellationToken)
+        public async UniTask<Result> InvokeAsync(Texture inputTex, HandDetect.Result palm, CancellationToken cancellationToken)
         {
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
@@ -146,7 +146,7 @@ namespace Holistic
             return result;
         }
 
-        private static float CalcHandRotation(PalmDetect.Result detection)
+        private static float CalcHandRotation(HandDetect.Result detection)
         {
             // Rotation based on Center of wrist - Middle finger
             var vec = detection.keypoints[0] - detection.keypoints[2];

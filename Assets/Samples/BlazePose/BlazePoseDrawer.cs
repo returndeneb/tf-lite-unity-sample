@@ -70,9 +70,9 @@ namespace TensorFlowLite
             {
                 return;
             }
-
-            draw.color = Color.blue;
-
+            
+            // draw.color = Color.blue;
+            
             Vector4[] landmarks = result.viewportLandmarks;
             // Update world joints
             for (int i = 0; i < landmarks.Length; i++)
@@ -80,7 +80,7 @@ namespace TensorFlowLite
                 Vector3 p = camera.ViewportToWorldPoint(landmarks[i]);
                 viewportLandmarks[i] = new Vector4(p.x, p.y, p.z + zOffset, landmarks[i].w);
             }
-
+            
             // Draw
             for (int i = 0; i < viewportLandmarks.Length; i++)
             {

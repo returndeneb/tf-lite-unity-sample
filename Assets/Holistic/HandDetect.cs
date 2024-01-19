@@ -10,7 +10,7 @@ using UnityEngine.Rendering;
 namespace Holistic
 {
 
-    public class PalmDetect : BaseImagePredictor<float>
+    public class HandDetect : BaseImagePredictor<float>
     {
         public struct Result
         {
@@ -31,7 +31,7 @@ namespace Holistic
         private readonly List<Result> results = new List<Result>();
         private readonly SsdAnchor[] anchors;
 
-        public PalmDetect(string modelPath) : base(modelPath, Accelerator.NONE)
+        public HandDetect(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             var options = new SsdAnchorsCalculator.Options()
             {

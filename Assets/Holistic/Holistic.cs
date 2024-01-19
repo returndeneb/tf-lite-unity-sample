@@ -13,60 +13,69 @@ namespace Holistic
         [SerializeField]
         private RawImage image;
         private FaceDetect faceDetect;
-        private FaceDetect.Result faceDetectResult;
+        private HandDetect handDetect;
         private FaceMesh faceMesh;
+        private HandMesh handMesh;
+        private FaceDetect.Result faceDetectResult;
         private FaceMesh.Result faceMeshResult;
-        private PalmDetect palmDetect;
-        private List<PalmDetect.Result> palmResults;
-        private HandLandmarkDetect landmarkDetect;
-        private HandLandmarkDetect.Result landmarkResult;
+        private List<HandDetect.Result> palmResults;
+        private HandMesh.Result handMeshResult;
         private PrimitiveDraw draw;
         private readonly Vector3[] imgSize = new Vector3[4];
-        private readonly Vector3[] worldJoints = new Vector3[HandLandmarkDetect.JOINT_COUNT];
-        private bool isTextureNull;
 
         private void Start()
         {
             faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
             faceMesh = new FaceMesh("mediapipe/face_landmark.tflite");
-            palmDetect = new PalmDetect("mediapipe/palm_detection_builtin_256_float16_quant.tflite");
-            landmarkDetect = new HandLandmarkDetect("mediapipe/hand_landmark.tflite");
-            
+            handDetect = new HandDetect("mediapipe/palm_detection_builtin_256_float16_quant.tflite");
+            handMesh = new HandMesh("mediapipe/hand_landmark.tflite");
             draw = new PrimitiveDraw(Camera.main, gameObject.layer);
-            
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
-            
+            image.material = faceDetect.TransformMat;
         }
         private void OnDestroy()
         {
             GetComponent<WebCamInput>().onTextureUpdate.RemoveListener(OnTextureUpdate);
             faceDetect?.Dispose();
             faceMesh?.Dispose();
-            palmDetect?.Dispose();
-            landmarkDetect?.Dispose();
+            handDetect?.Dispose();
+            handMesh?.Dispose();
             draw?.Dispose();
+        }
+        private void OnTextureUpdate(Texture texture)
+        {
+            image.texture = texture;
+            DetectFace(texture);
+            DetectHand(texture);
         }
         private void Update()
         {
+            image.rectTransform.GetWorldCorners(imgSize);
             DrawFace();
             DrawHand();
             draw.Apply();
-            
         }
-
-        private void DrawFace()
+        private void DetectFace(Texture texture)
         {
-            
-            if (image.texture == null) return;
-            image.material = faceDetect.TransformMat;
-            image.rectTransform.GetWorldCorners(imgSize);
-            faceDetect.Invoke(image.texture);
+            if (texture == null) return;
+            faceDetect.Invoke(texture);
             faceDetectResult = faceDetect.GetResults().FirstOrDefault();
             if (faceDetectResult == null) return;
-            faceMesh.Invoke(image.texture, faceDetectResult);
+            faceMesh.Invoke(texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
+        }
+        private void DetectHand(Texture texture)
+        {
+            if (texture == null) return;
+            handDetect.Invoke(texture);
+            palmResults = handDetect.GetResults();
+            if (palmResults.Count <= 0) return;
+            handMesh.Invoke(texture, palmResults[0]);
+            handMeshResult = handMesh.GetResult();
+        }
+        private void DrawFace()
+        {
             if (faceMeshResult == null) return;
-            
             for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
             {
                 var p = MathTF.Lerp(imgSize[0], imgSize[2], faceMeshResult.keyPoints[i]);
@@ -74,33 +83,15 @@ namespace Holistic
                 draw.Point(p);
             }
         }
-        
         private void DrawHand()
         {
-            if (image.texture == null) return;
-            image.material = palmDetect.TransformMat;
-            image.rectTransform.GetWorldCorners(imgSize);
-            palmDetect.Invoke(image.texture);
-            palmResults = palmDetect.GetResults();
-            
-            if (palmResults.Count <= 0) return;
-            landmarkDetect.Invoke(image.texture, palmResults[0]);
-            landmarkResult = landmarkDetect.GetResult();
-            if (landmarkResult == null) return;
-            
-            for (var i = 0; i < HandLandmarkDetect.JOINT_COUNT; i++)
+            if (handMeshResult == null) return;
+            for (var i = 0; i < HandMesh.JOINT_COUNT; i++)
             {
-                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], landmarkResult.joints[i]);
-                p1.z += (landmarkResult.joints[i].z - 0.5f) * (imgSize[2].x - imgSize[0].x);
+                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult.joints[i]);
+                p1.z += handMeshResult.joints[i].z* (imgSize[2].x - imgSize[0].x);
                 draw.Point(p1,0.1f);
             }
-        }
-        
-        private void OnTextureUpdate(Texture texture)
-        {
-        
-            image.texture = texture;
-            print("test");
         }
         
     }
