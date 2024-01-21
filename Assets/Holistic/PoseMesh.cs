@@ -119,7 +119,7 @@ namespace Holistic
             throw new System.NotImplementedException("Use Invoke(Texture, PalmDetect.Result)");
         }
 
-        public Result Invoke(Texture inputTex, TensorFlowLite.PoseDetect.Result pose)
+        public Result Invoke(Texture inputTex, PoseDetect.Result pose)
         {
             cropMatrix = CalcCropMatrix(ref pose, ref resizeOptions);
 
@@ -134,7 +134,7 @@ namespace Holistic
             return GetResult(inputTex);
         }
 
-        public async UniTask<Result> InvokeAsync(Texture inputTex, TensorFlowLite.PoseDetect.Result pose, CancellationToken cancellationToken, PlayerLoopTiming timing)
+        public async UniTask<Result> InvokeAsync(Texture inputTex, PoseDetect.Result pose, CancellationToken cancellationToken, PlayerLoopTiming timing)
         {
             cropMatrix = CalcCropMatrix(ref pose, ref resizeOptions);
             RenderTexture rt = resizer.Resize(
@@ -239,7 +239,7 @@ namespace Holistic
             }
         }
 
-        private Matrix4x4 CalcCropMatrix(ref TensorFlowLite.PoseDetect.Result pose, ref TextureResizer.ResizeOptions resizeOptions)
+        private Matrix4x4 CalcCropMatrix(ref PoseDetect.Result pose, ref TextureResizer.ResizeOptions resizeOptions)
         {
             float rotation = CalcRotationDegree(pose.keypoints[0], pose.keypoints[1]);
             var rect = AlignmentPointsToRect(pose.keypoints[0], pose.keypoints[1]);
@@ -254,7 +254,7 @@ namespace Holistic
             });
         }
 
-        public static TensorFlowLite.PoseDetect.Result LandmarkToDetection(Result result)
+        public static PoseDetect.Result LandmarkToDetection(Result result)
         {
             Vector2 hip = (result.viewportLandmarks[24] + result.viewportLandmarks[23]) / 2f;
             Vector2 nose = result.viewportLandmarks[0];
@@ -263,7 +263,7 @@ namespace Holistic
             hip.y = 1f - hip.y;
             aboveHead.y = 1f - aboveHead.y;
 
-            return new TensorFlowLite.PoseDetect.Result()
+            return new PoseDetect.Result()
             {
                 score = result.score,
                 keypoints = new Vector2[] { hip, aboveHead },

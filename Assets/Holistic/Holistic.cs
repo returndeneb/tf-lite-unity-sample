@@ -2,9 +2,7 @@
 using System.Linq;
 using TensorFlowLite;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
-using System.Collections;
 
 namespace Holistic
 {
@@ -92,7 +90,7 @@ namespace Holistic
             poseDetect.Invoke(texture);
             poseDetectResult = poseDetect.GetResults();
             if (poseDetectResult == null) return;
-            // poseMeshResult = poseMesh.Invoke(texture, poseDetectResult);
+            poseMeshResult = poseMesh.Invoke(texture, poseDetectResult);
         }
             
         private void DrawFace()
@@ -117,42 +115,38 @@ namespace Holistic
         }
         private void DrawLandmarkResult(float visibilityThreshold=0.5f, float zOffset=0f)
         {
-            print(poseMeshResult);
-            if (poseMeshResult == null)
-            {
-                return;
-            }
+        if (poseMeshResult == null)
+        {
+            return;
+        }
+        Vector4[] landmarks = poseMeshResult.viewportLandmarks;
+        // Update world joints
+        for (int i = 0; i < landmarks.Length; i++)
+        {
+            Vector3 p = Camera.main.ViewportToWorldPoint(landmarks[i]);
+            viewportLandmarks[i] = new Vector4(p.x, p.y, p.z + zOffset, landmarks[i].w);
+        }
         
-            // draw.color = Color.blue;
-        
-            Vector4[] landmarks = poseMeshResult.viewportLandmarks;
-            // Update world joints
-            for (int i = 0; i < landmarks.Length; i++)
+        // Draw
+        for (int i = 0; i < viewportLandmarks.Length; i++)
+        {
+            Vector4 p = viewportLandmarks[i];
+            if (p.w > visibilityThreshold)
             {
-                Vector3 p = GetComponent<Camera>().ViewportToWorldPoint(landmarks[i]);
-                viewportLandmarks[i] = new Vector4(p.x, p.y, p.z + zOffset, landmarks[i].w);
+                draw.Cube(p, 0.2f);
             }
-        
-            // Draw
-            for (int i = 0; i < viewportLandmarks.Length; i++)
+        }
+        var connections = PoseMesh.Connections;
+        for (int i = 0; i < connections.Length; i += 2)
+        {
+            var a = viewportLandmarks[connections[i]];
+            var b = viewportLandmarks[connections[i + 1]];
+            if (a.w > visibilityThreshold || b.w > visibilityThreshold)
             {
-                Vector4 p = viewportLandmarks[i];
-                if (p.w > visibilityThreshold)
-                {
-                    draw.Cube(p, 0.2f);
-                }
+                draw.Line3D(a, b, 0.05f);
             }
-            var connections = PoseMesh.Connections;
-            for (int i = 0; i < connections.Length; i += 2)
-            {
-                var a = viewportLandmarks[connections[i]];
-                var b = viewportLandmarks[connections[i + 1]];
-                if (a.w > visibilityThreshold || b.w > visibilityThreshold)
-                {
-                    draw.Line3D(a, b, 0.05f);
-                }
-            }
-            draw.Apply();
+        }
+        draw.Apply();
         }
         
     }
