@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Holistic
 {
-    public class Holistic : MonoBehaviour
+    public class Main : MonoBehaviour
     {
         [SerializeField]
         private RawImage image;
@@ -140,16 +140,10 @@ namespace Holistic
             {
                 var p = Camera.main.ViewportToWorldPoint(landmarks[i]);
                 viewportLandmarks[i] = new Vector4(p.x, p.y, p.z, landmarks[i].w);
+                if (viewportLandmarks[i].w > visibilityThreshold) 
+                    draw.Cube(viewportLandmarks[i], 0.2f);
             }
             
-            // Draw
-            foreach (var p in viewportLandmarks)
-            {
-                if (p.w > visibilityThreshold)
-                {
-                    draw.Cube(p, 0.2f);
-                }
-            }
             var connections = PoseMesh.Connections;
             for (var i = 0; i < connections.Length; i += 2)
             {

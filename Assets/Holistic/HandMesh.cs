@@ -2,6 +2,7 @@
 using Cysharp.Threading.Tasks;
 using TensorFlowLite;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Holistic
 {
@@ -23,8 +24,10 @@ namespace Holistic
             10, 10, 11, 11, 12, 9, 13, 13, 14, 14, 15, 15, 16, 13, 17, 0, 17, 17, 18, 18, 19, 19, 20, };
         public const int JointCount = 21;
 
-        private readonly float[] output0 = new float[JointCount * 2]; // keypoint
-        private readonly float[] output1 = new float[1]; // hand flag
+        private readonly float[] output0; // keypoints
+        private readonly float[] output1 = new float[1]; // score
+        private readonly float[] output2 = new float[1]; // 오른손 왼손
+        
         private readonly Result result;
         private Matrix4x4 cropMatrix;
 
@@ -74,11 +77,11 @@ namespace Holistic
                 TextureResizer.GetTextureST(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
-            //
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
+            interpreter.GetOutputTensorData(2, output2);
         }
 
         public async UniTask<Result> InvokeAsync(Texture inputTex, HandDetect.Result palm, CancellationToken cancellationToken)
@@ -104,8 +107,9 @@ namespace Holistic
             interpreter.Invoke();
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
+            interpreter.GetOutputTensorData(2, output2);
 
-            var result = GetResult();
+            GetResult();
             await UniTask.SwitchToMainThread(cancellationToken);
             return result;
         }
@@ -119,7 +123,7 @@ namespace Holistic
             result.score = output1[0];
             if (Dim == Dimension.Two)
             {
-                for (int i = 0; i < JointCount; i++)
+                for (var i = 0; i < JointCount; i++)
                 {
                     result.joints[i] = mtx.MultiplyPoint3x4(new Vector3(
                         output0[i * 2] * scale,
@@ -130,7 +134,7 @@ namespace Holistic
             }
             else
             {
-                for (int i = 0; i < JointCount; i++)
+                for (var i = 0; i < JointCount; i++)
                 {
                     result.joints[i] = mtx.MultiplyPoint3x4(new Vector3(
                         output0[i * 3] * scale,
