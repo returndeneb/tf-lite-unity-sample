@@ -11,7 +11,7 @@ namespace TensorFlowLite
     /// pose_landmark_upper_body_topology
     /// https://github.com/google/mediapipe/blob/master/mediapipe/modules/pose_landmark/pose_landmark_upper_body_topology.svg
     /// </summary>
-    public sealed class PoseMesh : BaseImagePredictor<float>
+    public sealed class PoseMesh : ImageInterpreter<float>
     {
         public class Result
         {

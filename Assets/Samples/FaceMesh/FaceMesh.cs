@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace TensorFlowLite
 {
-    public class FaceMesh : BaseImagePredictor<float>
+    public class FaceMesh : ImageInterpreter<float>
     {
         public class Result
         {

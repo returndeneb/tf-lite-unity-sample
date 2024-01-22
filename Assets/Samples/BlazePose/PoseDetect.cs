@@ -7,7 +7,7 @@ using UnityEngine.Assertions;
 
 namespace TensorFlowLite
 {
-    public sealed class PoseDetect : BaseImagePredictor<float>
+    public sealed class PoseDetect : ImageInterpreter<float>
     {
         [System.Serializable]
         public class Options

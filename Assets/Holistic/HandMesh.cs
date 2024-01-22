@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Holistic
 {
-    public class HandMesh : BaseImagePredictor<float>
+    public class HandMesh : ImageInterpreter<float>
     {
         public class Result
         {
@@ -15,43 +15,39 @@ namespace Holistic
 
         public enum Dimension
         {
-            TWO,
-            THREE,
+            Two,
+            Three,
         }
 
-        public static readonly int[] CONNECTIONS = new int[] { 0, 1, 1, 2, 2, 3, 3, 4, 0, 5, 5, 6, 6, 7, 7, 8, 5, 9, 9, 10, 10, 11, 11, 12, 9, 13, 13, 14, 14, 15, 15, 16, 13, 17, 0, 17, 17, 18, 18, 19, 19, 20, };
-        public const int JOINT_COUNT = 21;
+        public static readonly int[] Connections = new int[] { 0, 1, 1, 2, 2, 3, 3, 4, 0, 5, 5, 6, 6, 7, 7, 8, 5, 9, 9,
+            10, 10, 11, 11, 12, 9, 13, 13, 14, 14, 15, 15, 16, 13, 17, 0, 17, 17, 18, 18, 19, 19, 20, };
+        public const int JointCount = 21;
 
-        private readonly float[] output0 = new float[JOINT_COUNT * 2]; // keypoint
+        private readonly float[] output0 = new float[JointCount * 2]; // keypoint
         private readonly float[] output1 = new float[1]; // hand flag
         private readonly Result result;
         private Matrix4x4 cropMatrix;
 
-        public Dimension Dim { get; private set; }
-        public Vector2 PalmShift { get; set; } = new Vector2(0, 0.2f);
-        public Vector2 PalmScale { get; set; } = new Vector2(2.8f, 2.8f);
+        private Dimension Dim { get; }
+        private Vector2 PalmShift { get; } = new Vector2(0, 0.2f);
+        private Vector2 PalmScale { get; } = new Vector2(2.8f, 2.8f);
         public Matrix4x4 CropMatrix => cropMatrix;
 
         public HandMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
-            var out0info = interpreter.GetOutputTensorInfo(0);
-            switch (out0info.shape[1])
+            var out0Info = interpreter.GetOutputTensorInfo(0);
+            Dim = out0Info.shape[1] switch
             {
-                case JOINT_COUNT * 2:
-                    Dim = Dimension.TWO;
-                    break;
-                case JOINT_COUNT * 3:
-                    Dim = Dimension.THREE;
-                    break;
-                default:
-                    throw new System.NotSupportedException();
-            }
-            output0 = new float[out0info.shape[1]];
+                JointCount * 2 => Dimension.Two,
+                JointCount * 3 => Dimension.Three,
+                _ => throw new System.NotSupportedException()
+            };
+            output0 = new float[out0Info.shape[1]];
 
             result = new Result()
             {
                 score = 0,
-                joints = new Vector3[JOINT_COUNT],
+                joints = new Vector3[JointCount],
             };
         }
 
@@ -117,29 +113,29 @@ namespace Holistic
         public Result GetResult()
         {
             // Normalize 0 ~ 255 => 0.0 ~ 1.0
-            const float SCALE = 1f / 255f;
+            const float scale = 1f / 255f;
             var mtx = cropMatrix.inverse;
 
             result.score = output1[0];
-            if (Dim == Dimension.TWO)
+            if (Dim == Dimension.Two)
             {
-                for (int i = 0; i < JOINT_COUNT; i++)
+                for (int i = 0; i < JointCount; i++)
                 {
                     result.joints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                        output0[i * 2] * SCALE,
-                        1f - output0[i * 2 + 1] * SCALE,
+                        output0[i * 2] * scale,
+                        1f - output0[i * 2 + 1] * scale,
                         0
                     ));
                 }
             }
             else
             {
-                for (int i = 0; i < JOINT_COUNT; i++)
+                for (int i = 0; i < JointCount; i++)
                 {
                     result.joints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                        output0[i * 3] * SCALE,
-                        1f - output0[i * 3 + 1] * SCALE,
-                        output0[i * 3 + 2] * SCALE
+                        output0[i * 3] * scale,
+                        1f - output0[i * 3 + 1] * scale,
+                        output0[i * 3 + 2] * scale
                     ));
                 }
             }
@@ -149,7 +145,7 @@ namespace Holistic
         private static float CalcHandRotation(HandDetect.Result detection)
         {
             // Rotation based on Center of wrist - Middle finger
-            var vec = detection.keypoints[0] - detection.keypoints[2];
+            var vec = detection.keyPoints[0] - detection.keyPoints[2];
             return -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg;
         }
     }

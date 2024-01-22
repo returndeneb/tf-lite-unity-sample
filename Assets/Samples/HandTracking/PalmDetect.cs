@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Samples.HandTracking
 {
 
-    public class PalmDetect : BaseImagePredictor<float>
+    public class PalmDetect : ImageInterpreter<float>
     {
         public struct Result
         {

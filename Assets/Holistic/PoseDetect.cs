@@ -8,7 +8,7 @@ using UnityEngine.Assertions;
 
 namespace Holistic
 {
-    public sealed class PoseDetect : BaseImagePredictor<float>
+    public sealed class PoseDetect : ImageInterpreter<float>
     {
         [System.Serializable]
         public class Options
@@ -53,7 +53,7 @@ namespace Holistic
         private readonly SsdAnchor[] anchors;
         private readonly SortedSet<Result> results = new SortedSet<Result>();
 
-        public PoseDetect(string modelPath) : base(modelPath, Accelerator.GPU)
+        public PoseDetect(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             resizeOptions.aspectMode = AspectMode.Fit;
 

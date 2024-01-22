@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Samples.FaceMesh
 {
-    public class FaceDetect : BaseImagePredictor<float>
+    public class FaceDetect : ImageInterpreter<float>
     {
         public enum KeyPoint
         {

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Samples.HandTracking
 {
-    public class HandLandmarkDetect : BaseImagePredictor<float>
+    public class HandLandmarkDetect : ImageInterpreter<float>
     {
         public class Result
         {

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Holistic
 {
-    public class FaceMesh : BaseImagePredictor<float>
+    public class FaceMesh : ImageInterpreter<float>
     {
         public class Result
         {
@@ -18,11 +18,9 @@ namespace Holistic
         private readonly Result result;
         private Matrix4x4 cropMatrix;
 
-        private Vector2 FaceShift { get; set; } = new Vector2(0f, 0f);
-        private Vector2 FaceScale { get; set; } = new Vector2(1.6f, 1.6f);
-        public Matrix4x4 CropMatrix => cropMatrix;
-
-
+        private Vector2 FaceShift { get; set; } = new(0f, 0f);
+        private Vector2 FaceScale { get; set; } = new(1.6f, 1.6f);
+        
         public FaceMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             result = new Result()
@@ -78,7 +76,7 @@ namespace Holistic
             return result;
         }
 
-        public FaceDetect.Result LandmarkToDetection(Result landmark)
+        public static FaceDetect.Result LandmarkToDetection(Result landmark)
         {
             // Original index looks like a bug
             // rotation_vector_start_keypoint_index: 33  # Left side of left eye.
@@ -107,14 +105,13 @@ namespace Holistic
                 keyPoints = new Vector2[]
                 {
                     landmarkKeyPoints[end], landmarkKeyPoints[start]
-                },
+                }
             };
         }
 
         private static float GetFaceAngle(FaceDetect.Result detection)
         {
             var vec = detection.RightEye - detection.LeftEye;
-            // Debug.Log(-Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg);
             return -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg;
         }
     }

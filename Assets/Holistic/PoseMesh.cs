@@ -1,61 +1,25 @@
-﻿using System.Diagnostics;
-using System.Threading;
+﻿using System.Threading;
 using Cysharp.Threading.Tasks;
 using TensorFlowLite;
 using UnityEngine;
 
 namespace Holistic
 {
-    /// <summary>
-    /// https://google.github.io/mediapipe/solutions/pose.html
-    /// 
-    /// pose_landmark_upper_body_topology
-    /// https://github.com/google/mediapipe/blob/master/mediapipe/modules/pose_landmark/pose_landmark_upper_body_topology.svg
-    /// </summary>
-    public sealed class PoseMesh : BaseImagePredictor<float>
+    public sealed class PoseMesh : ImageInterpreter<float>
     {
         public class Result
         {
             public float score;
-            // x, y, z, w = visibility
             public Vector4[] viewportLandmarks;
             public Vector4[] worldLandmarks;
-            public Texture SegmentationTexture { get; internal set; } = null;
-        }
-
-        [System.Serializable]
-        public class Options
-        {
-            [FilePopup("*.tflite")]
-            public string modelPath = string.Empty;
-            public bool useWorldLandmarks = true;
-            public bool useFilter = true;
-            public Vector3 filterVelocityScale = new Vector3(10, 10, 2);
-            public Vector2 poseShift = new Vector2(0, 0);
-            public Vector2 poseScale = new Vector2(1.5f, 1.5f);
-            public bool enableSegmentation = false;
-            public ComputeShader compute = default;
-            [Range(0.1f, 4f)]
-            public float segmentationSigma = 1f;
-
-            internal AspectMode AspectMode { get; set; } = AspectMode.Fit;
-
-            private Vector3 cachedFilterVelocityScale;
-
-            public bool CheckFilterUpdated()
-            {
-                bool isUpdated = cachedFilterVelocityScale != filterVelocityScale;
-                cachedFilterVelocityScale = filterVelocityScale;
-                return isUpdated;
-            }
         }
 
         public const int LandmarkCount = 33;
         // A pair of indexes
-        public static readonly int[] Connections = new int[]
-        {
+        public static readonly int[] Connections = {
             // the same as Upper Body 
-            0, 1, 1, 2, 2, 3, 3, 7, 0, 4, 4, 5, 5, 6, 6, 8, 9, 10, 11, 12, 11, 13, 13, 15, 15, 17, 15, 19, 15, 21, 17, 19, 12, 14, 14, 16, 16, 18, 16, 20, 16, 22, 18, 20, 11, 23, 12, 24, 23, 24,
+            0, 1, 1, 2, 2, 3, 3, 7, 0, 4, 4, 5, 5, 6, 6, 8, 9, 10, 11, 12, 11, 13, 13, 15, 15, 17, 15, 19, 15, 21, 
+            17, 19, 12, 14, 14, 16, 16, 18, 16, 20, 16, 22, 18, 20, 11, 23, 12, 24, 23, 24,
             // left leg
             24, 26, 26, 28, 28, 32, 32, 30, 30, 28,
             // right leg
@@ -74,7 +38,6 @@ namespace Holistic
         private readonly float[] output4 = new float[117];
 
         private readonly Result result;
-        private readonly Stopwatch stopwatch;
         private readonly RelativeVelocityFilter3D[] filters;
         // private readonly Options options;
         private readonly PoseSegmentation segmentation;
@@ -82,7 +45,7 @@ namespace Holistic
 
         public Matrix4x4 CropMatrix => cropMatrix;
 
-        public PoseMesh(string modelPath) : base(modelPath, Accelerator.GPU)
+        public PoseMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             // this.options = options;
             // resizeOptions.aspectMode = options.AspectMode;
@@ -105,7 +68,6 @@ namespace Holistic
             {
                 filters[i] = new RelativeVelocityFilter3D(windowSize, velocityScale, mode);
             }
-            stopwatch = Stopwatch.StartNew();
         }
 
         public override void Dispose()
@@ -123,7 +85,7 @@ namespace Holistic
         {
             cropMatrix = CalcCropMatrix(ref pose, ref resizeOptions);
 
-            RenderTexture rt = resizer.Resize(
+            var rt = resizer.Resize(
                inputTex, resizeOptions.width, resizeOptions.height,
                cropMatrix,
                TextureResizer.GetTextureST(inputTex, resizeOptions));
@@ -137,7 +99,7 @@ namespace Holistic
         public async UniTask<Result> InvokeAsync(Texture inputTex, PoseDetect.Result pose, CancellationToken cancellationToken, PlayerLoopTiming timing)
         {
             cropMatrix = CalcCropMatrix(ref pose, ref resizeOptions);
-            RenderTexture rt = resizer.Resize(
+            var rt = resizer.Resize(
               inputTex, resizeOptions.width, resizeOptions.height,
               cropMatrix,
               TextureResizer.GetTextureST(inputTex, resizeOptions));
@@ -162,26 +124,26 @@ namespace Holistic
         private Result GetResult(Texture inputTex)
         {
             // Normalize 0 ~ 255 => 0.0 ~ 1.0
-            const float SCALE = 1f / 255f;
+            const float scale = 1f / 255f;
             var mtx = cropMatrix.inverse;
 
             // https://google.github.io/mediapipe/solutions/pose.html#output
             // The magnitude of z uses roughly the same scale as x.
-            float xScale = Mathf.Abs(mtx.lossyScale.x);
-            float zScale = SCALE * xScale * xScale;
+            var xScale = Mathf.Abs(mtx.lossyScale.x);
+            var zScale = scale * xScale * xScale;
 
             result.score = output1[0];
 
-            Vector2 min = new Vector2(float.MaxValue, float.MaxValue);
-            Vector2 max = new Vector2(float.MinValue, float.MinValue);
+            var min = new Vector2(float.MaxValue, float.MaxValue);
+            var max = new Vector2(float.MinValue, float.MinValue);
 
-            int dimensions = output0.Length / LandmarkCount;
+            var dimensions = output0.Length / LandmarkCount;
 
-            for (int i = 0; i < LandmarkCount; i++)
+            for (var i = 0; i < LandmarkCount; i++)
             {
                 Vector4 p = mtx.MultiplyPoint3x4(new Vector3(
-                    output0[i * dimensions] * SCALE,
-                    1f - output0[i * dimensions + 1] * SCALE,
+                    output0[i * dimensions] * scale,
+                    1f - output0[i * dimensions + 1] * scale,
                     output0[i * dimensions + 2] * zScale
                 ));
                 p.w = output0[i * dimensions + 3];
@@ -197,10 +159,10 @@ namespace Holistic
             return result;
         }
 
-        private void SetWorldLandmarks(Result result)
+        private void SetWorldLandmarks()
         {
-            int dimensions = output4.Length / LandmarkCount;
-            for (int i = 0; i < LandmarkCount; i++)
+            var dimensions = output4.Length / LandmarkCount;
+            for (var i = 0; i < LandmarkCount; i++)
             {
                 result.worldLandmarks[i] = new Vector4(
                     output4[i * dimensions],
@@ -226,9 +188,8 @@ namespace Holistic
 
         private static float CalcRotationDegree(in Vector2 a, in Vector2 b)
         {
-            const float RAD_90 = 90f * Mathf.PI / 180f;
             var vec = a - b;
-            return -(RAD_90 + Mathf.Atan2(vec.y, vec.x)) * Mathf.Rad2Deg;
+            return  -Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg - 90f;
         }
 
         private void UpdateFilterScale(Vector3 scale)
@@ -239,9 +200,9 @@ namespace Holistic
             }
         }
 
-        private Matrix4x4 CalcCropMatrix(ref PoseDetect.Result pose, ref TextureResizer.ResizeOptions resizeOptions)
+        private static Matrix4x4 CalcCropMatrix(ref PoseDetect.Result pose, ref TextureResizer.ResizeOptions resizeOptions)
         {
-            float rotation = CalcRotationDegree(pose.keypoints[0], pose.keypoints[1]);
+            var rotation = CalcRotationDegree(pose.keypoints[0], pose.keypoints[1]);
             var rect = AlignmentPointsToRect(pose.keypoints[0], pose.keypoints[1]);
             return RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
@@ -258,7 +219,7 @@ namespace Holistic
         {
             Vector2 hip = (result.viewportLandmarks[24] + result.viewportLandmarks[23]) / 2f;
             Vector2 nose = result.viewportLandmarks[0];
-            Vector2 aboveHead = hip + (nose - hip) * 1.2f;
+            var aboveHead = hip + (nose - hip) * 1.2f;
             // Y Flipping
             hip.y = 1f - hip.y;
             aboveHead.y = 1f - aboveHead.y;
@@ -266,7 +227,7 @@ namespace Holistic
             return new PoseDetect.Result()
             {
                 score = result.score,
-                keypoints = new Vector2[] { hip, aboveHead },
+                keypoints = new[] { hip, aboveHead }
             };
         }
     }

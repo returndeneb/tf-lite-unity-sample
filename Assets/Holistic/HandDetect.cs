@@ -5,32 +5,32 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TensorFlowLite;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Holistic
 {
-
-    public class HandDetect : BaseImagePredictor<float>
+    public class HandDetect : ImageInterpreter<float>
     {
         public struct Result
         {
             public float score;
             public Rect rect;
-            public Vector2[] keypoints;
+            public Vector2[] keyPoints;
         }
 
         private const int MaxPalmNum = 4;
 
-        // classificators / scores
+        // classifications / scores
         private readonly float[] output0 = new float[2944];
 
-        // regressors / points
+        // regress / points
         // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
         // 4 - 17 are 7 hand keypoint x and y coordinates: x1,y1,x2,y2,...x7,y7
         private readonly float[,] output1 = new float[2944, 18];
-        private readonly List<Result> results = new List<Result>();
+        private readonly float [] output2 = new float[2944];
+        
         private readonly SsdAnchor[] anchors;
-
+        private readonly List<Result> results = new();
+        
         public HandDetect(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             var options = new SsdAnchorsCalculator.Options()
@@ -47,24 +47,19 @@ namespace Holistic
                 numLayers = 5,
                 featureMapWidth = Array.Empty<int>(),
                 featureMapHeight = Array.Empty<int>(),
-                strides = new int[] { 8, 16, 32, 32, 32 },
+                strides = new [] { 8, 16, 32, 32, 32 },
 
-                aspectRatios = new float[] { 1.0f },
+                aspectRatios = new [] { 1.0f },
 
                 reduceBoxesInLowestLayer = false,
                 interpolatedScaleAspectRatio = 1.0f,
                 fixedAnchorSize = true,
             };
-
             anchors = SsdAnchorsCalculator.Generate(options);
-            Debug.AssertFormat(anchors.Length == 2944, "Anchors count must be 2944");
         }
 
         public override void Invoke(Texture inputTex)
         {
-            // const float OFFSET = 128f;
-            // const float SCALE = 1f / 128f;
-            // ToTensor(inputTex, input0, OFFSET, SCALE);
             ToTensor(inputTex, inputTensor);
 
             interpreter.SetInputTensorData(0, inputTensor);
@@ -72,26 +67,27 @@ namespace Holistic
             
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
+            // interpreter.GetOutputTensorData(2, output2);
         }
 
-        public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
-        {
-            await ToTensorAsync(inputTex, inputTensor, cancellationToken);
-            await UniTask.SwitchToThreadPool();
+        // public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
+        // {
+        //     await ToTensorAsync(inputTex, inputTensor, cancellationToken);
+        //     await UniTask.SwitchToThreadPool();
+        //
+        //     interpreter.SetInputTensorData(0, inputTensor);
+        //     interpreter.Invoke();
+        //
+        //     interpreter.GetOutputTensorData(0, output0);
+        //     interpreter.GetOutputTensorData(1, output1);
+        //
+        //     var invokeAsync = GetResults();
+        //
+        //     await UniTask.SwitchToMainThread(cancellationToken);
+        //     return invokeAsync;
+        // }
 
-            interpreter.SetInputTensorData(0, inputTensor);
-            interpreter.Invoke();
-
-            interpreter.GetOutputTensorData(0, output0);
-            interpreter.GetOutputTensorData(1, output1);
-
-            var invokeAsync = GetResults();
-
-            await UniTask.SwitchToMainThread(cancellationToken);
-            return invokeAsync;
-        }
-
-        public List<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
+        public List<Result> GetResults(float scoreThreshold = 0.7f)
         {
             results.Clear();
 
@@ -134,37 +130,26 @@ namespace Holistic
                 {
                     score = score,
                     rect = new Rect(cx - w * 0.5f, cy - h * 0.5f, w, h),
-                    keypoints = keyPoints,
+                    keyPoints = keyPoints,
                 });
 
             }
 
-            return NonMaxSuppression(results, iouThreshold);
+            return NonMaxSuppression(results);
         }
 
-        private static List<Result> NonMaxSuppression(IEnumerable<Result> palms, float iouThreshold)
+        private static List<Result> NonMaxSuppression(IEnumerable<Result> palms, float iouThreshold=0.3f)
         {
             var filtered = new List<Result>();
 
             foreach (var originalPalm in palms.OrderByDescending(o => o.score))
             {
-                var ignoreCandidate = false;
-                foreach (var newPalm in filtered)
-                {
-                    var iou = originalPalm.rect.IntersectionOverUnion(newPalm.rect);
-                    if (!(iou >= iouThreshold)) continue;
-                    ignoreCandidate = true;
-                    break;
-                }
-
+                var ignoreCandidate = filtered.Select(newPalm => 
+                    originalPalm.rect.IntersectionOverUnion(newPalm.rect)).Any(iou => iou >= iouThreshold);
                 if (ignoreCandidate) continue;
                 filtered.Add(originalPalm);
-                if (filtered.Count >= MaxPalmNum)
-                {
-                    break;
-                }
+                if (filtered.Count >= MaxPalmNum) break;
             }
-
             return filtered;
         }
 

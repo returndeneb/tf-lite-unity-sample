@@ -1,36 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using TensorFlowLite;
 using UnityEngine;
 
 namespace Holistic
 {
-    public class FaceDetect : BaseImagePredictor<float>
+    public class FaceDetect : ImageInterpreter<float>
     {
-        private enum KeyPoint
-        {
-            RightEye,  //  0
-            LeftEye, //  1
-            Nose, //  2
-            Mouth, //  3
-            RightEar, //  4
-            LeftEar, //  5
-        }
-
         public class Result
         {
             public float score;
             public Rect rect;
             public Vector2[] keyPoints;
 
-            public Vector2 RightEye => keyPoints[(int)KeyPoint.RightEye];
-            public Vector2 LeftEye => keyPoints[(int)KeyPoint.LeftEye];
+            public Vector2 RightEye => keyPoints[0];
+            public Vector2 LeftEye => keyPoints[1];
         }
 
-        private const int KeyPointSize = 6;
-
-        private const int MaxFaceNum = 100;
+        private const int KeyPointsNum = 6;
 
         // regress / points
         // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
@@ -46,7 +36,7 @@ namespace Holistic
 
         public FaceDetect(string modelPath) : base(modelPath, Accelerator.NONE)
         {
-            var options = new SsdAnchorsCalculator.Options()
+            var options = new SsdAnchorsCalculator.Options
             {
                 inputSizeWidth = 128,
                 inputSizeHeight = 128,
@@ -60,9 +50,9 @@ namespace Holistic
                 numLayers = 4,
                 featureMapWidth = Array.Empty<int>(),
                 featureMapHeight = Array.Empty<int>(),
-                strides = new int[] { 8, 16, 16, 16 },
+                strides = new[] { 8, 16, 16, 16 },
 
-                aspectRatios = new float[] { 1.0f },
+                aspectRatios = new[] { 1.0f },
 
                 reduceBoxesInLowestLayer = false,
                 interpolatedScaleAspectRatio = 1.0f,
@@ -70,13 +60,11 @@ namespace Holistic
             };
 
             anchors = SsdAnchorsCalculator.Generate(options);
-            UnityEngine.Debug.AssertFormat(anchors.Length == 896, $"Anchors count must be 896, but was {anchors.Length}");
         }
-
         public override void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
-
+            
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
 
@@ -84,68 +72,63 @@ namespace Holistic
             interpreter.GetOutputTensorData(1, output1);
         }
 
-        public IEnumerable<Result> GetResults(float scoreThreshold = 0.7f, float iouThreshold = 0.3f)
+        public IEnumerable<Result> GetResults(float scoreThreshold = 0.7f)
         {
             results.Clear();
 
-            for (var i = 0; i < anchors.Length; i++)
+            for (var a = 0; a < anchors.Length; a++)
             {
-                var score = MathTF.Sigmoid(output1[i]);
+                var score = MathTF.Sigmoid(output1[a]);
                 if (score < scoreThreshold)
                 {
                     continue;
                 }
-                var anchor = anchors[i];
+                var anchor = anchors[a];
 
-                var sx = output0[i, 0];
-                var sy = output0[i, 1];
-                var w = output0[i, 2];
-                var h = output0[i, 3];
+                var dx = output0[a, 0];
+                var dy = output0[a, 1];
+                var w = output0[a, 2];
+                var h = output0[a, 3];
 
-                var cx = sx + anchor.x * width;
-                var cy = sy + anchor.y * height;
+                var x = dx + anchor.x * width;
+                var y = dy + anchor.y * height;
 
-                cx /= (float)width;
-                cy /= (float)height;
-                w /= (float)width;
-                h /= (float)height;
+                x /= width;
+                y /= height;
+                w /= width;
+                h /= height;
 
-                var keyPoints = new Vector2[KeyPointSize];
-                for (var j = 0; j < KeyPointSize; j++)
+                var keyPoints = new Vector2[KeyPointsNum];
+                for (var i = 0; i < KeyPointsNum; i++)
                 {
-                    var lx = output0[i, 4 + (2 * j) + 0];
-                    var ly = output0[i, 4 + (2 * j) + 1];
-                    lx += anchor.x * width;
-                    ly += anchor.y * height;
-                    lx /= (float)width;
-                    ly /= (float)height;
-                    keyPoints[j] = new Vector2(lx, ly);
+                    var xi = output0[a, 4 + (2 * i) + 0];
+                    var yi = output0[a, 4 + (2 * i) + 1];
+                    xi += anchor.x * width;
+                    yi += anchor.y * height;
+                    xi /= width;
+                    yi /= height;
+                    keyPoints[i] = new Vector2(xi, yi);
                 }
                 results.Add(new Result()
                 {
                     score = score,
-                    rect = new Rect(cx - w * 0.5f, cy - h * 0.5f, w, h),
+                    rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
                     keyPoints = keyPoints,
                 });
             }
-            return NonMaxSuppression(iouThreshold);
+            return NonMaxSuppression();
         }
 
-        private List<Result> NonMaxSuppression(float iouThreshold)
+        private IEnumerable<Result> NonMaxSuppression(float iouThreshold=0.3f)
         {
             filteredResults.Clear();
-            // FIXME LinQ allocs GC each frame
-            // Use sorted list
-            foreach (var original in results.OrderByDescending(o => o.score))
+            foreach (var result in results.OrderByDescending(o => o.score))
             {
-                var ignoreCandidate = filteredResults.Select(newResult => original.rect.IntersectionOverUnion(newResult.rect)).Any(iou => iou >= iouThreshold);
-
+                var ignoreCandidate = filteredResults.Select(newResult => 
+                    result.rect.IntersectionOverUnion(newResult.rect)).Any(iou => iou >= iouThreshold);
                 if (ignoreCandidate) continue;
-                filteredResults.Add(original);
-                if (filteredResults.Count >= MaxFaceNum)
-                {
-                    break;
-                }
+                filteredResults.Add(result);
+                if (filteredResults.Count >= 100) break;
             }
             return filteredResults;
         }
