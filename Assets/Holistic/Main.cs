@@ -17,6 +17,7 @@ namespace Holistic
         
         private FaceMesh faceMesh;
         private HandMesh handMesh;
+        private HandMesh handMesh2;
         private PoseMesh poseMesh;
         
         private FaceDetect.Result faceDetectResult;
@@ -25,6 +26,7 @@ namespace Holistic
         
         private FaceMesh.Result faceMeshResult;
         private HandMesh.Result handMeshResult;
+        private HandMesh.Result handMeshResult2;
         private PoseMesh.Result poseMeshResult;
         
         private PrimitiveDraw draw;
@@ -38,6 +40,7 @@ namespace Holistic
             
             faceMesh = new FaceMesh("mediapipe/face_landmark.tflite");
             handMesh = new HandMesh("mediapipe/hand_landmark.tflite");
+            handMesh2 = new HandMesh("mediapipe/hand_landmark.tflite");
             poseMesh = new PoseMesh("mediapipe/pose_landmark_lite.tflite");
             
             draw = new PrimitiveDraw(Camera.main, gameObject.layer);
@@ -55,6 +58,7 @@ namespace Holistic
             
             faceMesh?.Dispose();
             handMesh?.Dispose();
+            handMesh2?.Dispose();
             poseMesh?.Dispose();
             
             draw?.Dispose();
@@ -95,6 +99,9 @@ namespace Holistic
             if (handDetectResults.Count <= 0) return;
             handMesh.Invoke(texture, handDetectResults[0]);
             handMeshResult = handMesh.GetResult();
+            if (handDetectResults.Count <= 1) return;
+            handMesh2.Invoke(texture, handDetectResults[1]);
+            handMeshResult2 = handMesh2.GetResult();
         }
 
         private void DetectPose(Texture texture)
@@ -124,11 +131,24 @@ namespace Holistic
         }
         private void DrawHand()
         {
-            if (handMeshResult == null) return;
+            if (handMeshResult != null)
+            {
+                for (var i = 0; i < HandMesh.JointCount; i++)
+                {
+                    var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult.joints[i]);
+                    p1.z += handMeshResult.joints[i].z* (imgSize[2].x - imgSize[0].x);
+                    
+                    draw.Point(p1,0.1f);
+                }
+            }
+            
+            if (handMeshResult2 == null) return;
+            
             for (var i = 0; i < HandMesh.JointCount; i++)
             {
-                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult.joints[i]);
-                p1.z += handMeshResult.joints[i].z* (imgSize[2].x - imgSize[0].x);
+                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult2.joints[i]);
+                p1.z += handMeshResult2.joints[i].z* (imgSize[2].x - imgSize[0].x);
+                
                 draw.Point(p1,0.1f);
             }
         }

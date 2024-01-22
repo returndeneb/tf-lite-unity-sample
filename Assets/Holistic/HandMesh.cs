@@ -24,7 +24,7 @@ namespace Holistic
             10, 10, 11, 11, 12, 9, 13, 13, 14, 14, 15, 15, 16, 13, 17, 0, 17, 17, 18, 18, 19, 19, 20, };
         public const int JointCount = 21;
 
-        private readonly float[] output0; // keypoints
+        private readonly float[] output0; // keyPoints
         private readonly float[] output1 = new float[1]; // score
         private readonly float[] output2 = new float[1]; // 오른손 왼손
         
