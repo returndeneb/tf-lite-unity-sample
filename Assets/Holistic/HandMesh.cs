@@ -32,7 +32,7 @@ namespace Holistic
         private Matrix4x4 cropMatrix;
 
         private Dimension Dim { get; }
-        private Vector2 PalmShift { get; } = new Vector2(0, 0.2f);
+        private Vector2 PalmShift { get; } = new Vector2(0f, 0f);
         private Vector2 PalmScale { get; } = new Vector2(2.8f, 2.8f);
         public Matrix4x4 CropMatrix => cropMatrix;
 

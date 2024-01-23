@@ -114,7 +114,7 @@ namespace Holistic
                 results.Add(new Result()
                 {
                     score = score,
-                    rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
+                    rect = new Rect(x - w * 0.5f, y - h * 0.5f, w*1.6f, h*1.6f),
                     // keyPoints = keyPoints,
                     rotation =  -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
                 });

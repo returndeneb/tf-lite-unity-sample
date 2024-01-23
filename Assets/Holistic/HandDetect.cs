@@ -126,13 +126,15 @@ namespace Holistic
                     keyPoints[j] = new Vector2(lx, ly);
                 }
                 var vec = keyPoints[0] - keyPoints[2];
-                // Debug.Log(w);
+                var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
+                const float shifting = 0.1f / 2.8f;
+                Debug.Log(rot);
                 results.Add(new Result()
                 {
                     score = score,
-                    rect = new Rect(cx - w * 0.5f, cy - h * 0.5f, w, h),
+                    rect = new Rect(cx + shifting*Mathf.Sin(rot*Mathf.PI/180f)- w * 0.5f, cy + shifting*Mathf.Cos(rot*Mathf.PI/180f) - h * 0.5f, w, h),
                     // keyPoints = keyPoints,
-                    rotation =  -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg
+                    rotation =  rot
                 });
 
             }

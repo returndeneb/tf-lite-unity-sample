@@ -19,7 +19,7 @@ namespace Holistic
         private Matrix4x4 cropMatrix;
 
         private Vector2 FaceShift { get; set; } = new(0f, 0f);
-        private Vector2 FaceScale { get; set; } = new(1.6f, 1.6f);
+        private Vector2 FaceScale { get; set; } = new(1f, 1f);
         
         public FaceMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
@@ -97,7 +97,7 @@ namespace Holistic
             return new FaceDetect.Result()
             {
                 score = landmark.score,
-                rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size),
+                rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size*1.6f, size*1.6f),
                 rotation = -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
             };
         }
