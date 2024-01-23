@@ -111,8 +111,8 @@ namespace Holistic
 
                 cx /= width;
                 cy /= height;
-                w /= width;
-                h /= height;
+                w /= width/2.8f;
+                h /= height/2.8f;
 
                 var keyPoints = new Vector2[7];
                 for (var j = 0; j < 7; j++)
@@ -127,8 +127,7 @@ namespace Holistic
                 }
                 var vec = keyPoints[0] - keyPoints[2];
                 var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
-                const float shifting = 0.1f / 2.8f;
-                Debug.Log(rot);
+                const float shifting = 0.2f / 2.8f;
                 results.Add(new Result()
                 {
                     score = score,

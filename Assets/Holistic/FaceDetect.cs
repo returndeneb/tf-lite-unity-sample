@@ -96,8 +96,8 @@ namespace Holistic
 
                 x /= width;
                 y /= height;
-                w /= width;
-                h /= height;
+                w /= width/1.6f;
+                h /= height/1.6f;
 
                 var keyPoints = new Vector2[2];
                 for (var i = 0; i < 2; i++)
@@ -114,7 +114,7 @@ namespace Holistic
                 results.Add(new Result()
                 {
                     score = score,
-                    rect = new Rect(x - w * 0.5f, y - h * 0.5f, w*1.6f, h*1.6f),
+                    rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
                     // keyPoints = keyPoints,
                     rotation =  -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
                 });
