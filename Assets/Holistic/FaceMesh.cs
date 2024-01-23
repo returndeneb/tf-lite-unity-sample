@@ -40,11 +40,11 @@ namespace Holistic
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = face.rect,
-                rotationDegree = GetFaceAngle(face),
-                shift = FaceShift,
+                rotationDegree = face.rotation,
+                // shift = FaceShift,
                 scale = FaceScale,
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
+                // mirrorHorizontal = resizeOptions.mirrorHorizontal,
+                // mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             var rt = resizer.Resize(
@@ -78,41 +78,28 @@ namespace Holistic
 
         public static FaceDetect.Result LandmarkToDetection(Result landmark)
         {
-            // Original index looks like a bug
-            // rotation_vector_start_keypoint_index: 33  # Left side of left eye.
-            // rotation_vector_end_keypoint_index: 133  # Right side of right eye.
-
             const int start = 33; // Left side of left eye.
             const int end = 263; // Right side of right eye.
 
             var landmarkKeyPoints = landmark.keyPoints;
+            
             for (var i = 0; i < landmarkKeyPoints.Length; i++)
             {
-                var v = landmarkKeyPoints[i];
-                v.y = 1f - v.y;
-                landmarkKeyPoints[i] = v;
+                landmarkKeyPoints[i].y = 1f - landmarkKeyPoints[i].y;
             }
 
             var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
             var center = rect.center;
             var size = Mathf.Min(rect.width, rect.height);
-            rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size);
-
+            
+            var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
+            
             return new FaceDetect.Result()
             {
                 score = landmark.score,
-                rect = rect,
-                keyPoints = new Vector2[]
-                {
-                    landmarkKeyPoints[end], landmarkKeyPoints[start]
-                }
+                rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size),
+                rotation = -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
             };
-        }
-
-        private static float GetFaceAngle(FaceDetect.Result detection)
-        {
-            var vec = detection.RightEye - detection.LeftEye;
-            return -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg;
         }
     }
 }

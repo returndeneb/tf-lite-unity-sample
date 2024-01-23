@@ -63,8 +63,9 @@ namespace Holistic
             filters = new RelativeVelocityFilter3D[LandmarkCount];
             const int windowSize = 5;
             const float velocityScale = 10;
-            const RelativeVelocityFilter.DistanceEstimationMode mode = RelativeVelocityFilter.DistanceEstimationMode.LegacyTransition;
-            for (int i = 0; i < LandmarkCount; i++)
+            const RelativeVelocityFilter.DistanceEstimationMode mode =
+                RelativeVelocityFilter.DistanceEstimationMode.LegacyTransition;
+            for (var i = 0; i < LandmarkCount; i++)
             {
                 filters[i] = new RelativeVelocityFilter3D(windowSize, velocityScale, mode);
             }
@@ -96,7 +97,8 @@ namespace Holistic
             return GetResult(inputTex);
         }
 
-        public async UniTask<Result> InvokeAsync(Texture inputTex, PoseDetect.Result pose, CancellationToken cancellationToken, PlayerLoopTiming timing)
+        public async UniTask<Result> InvokeAsync(Texture inputTex, PoseDetect.Result pose,
+            CancellationToken cancellationToken, PlayerLoopTiming timing)
         {
             cropMatrix = CalcCropMatrix(ref pose, ref resizeOptions);
             var rt = resizer.Resize(

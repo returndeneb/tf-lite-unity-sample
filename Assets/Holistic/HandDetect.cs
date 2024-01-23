@@ -14,7 +14,8 @@ namespace Holistic
         {
             public float score;
             public Rect rect;
-            public Vector2[] keyPoints;
+            // public Vector2[] keyPoints;
+            public float rotation;
         }
 
         private const int MaxPalmNum = 4;
@@ -67,7 +68,6 @@ namespace Holistic
             
             interpreter.GetOutputTensorData(0, output0);
             interpreter.GetOutputTensorData(1, output1);
-            // interpreter.GetOutputTensorData(2, output2);
         }
 
         // public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
@@ -125,12 +125,14 @@ namespace Holistic
                     ly /= height;
                     keyPoints[j] = new Vector2(lx, ly);
                 }
-
+                var vec = keyPoints[0] - keyPoints[2];
+                // Debug.Log(w);
                 results.Add(new Result()
                 {
                     score = score,
                     rect = new Rect(cx - w * 0.5f, cy - h * 0.5f, w, h),
-                    keyPoints = keyPoints,
+                    // keyPoints = keyPoints,
+                    rotation =  -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg
                 });
 
             }

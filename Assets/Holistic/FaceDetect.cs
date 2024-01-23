@@ -14,10 +14,11 @@ namespace Holistic
         {
             public float score;
             public Rect rect;
-            public Vector2[] keyPoints;
+            public float rotation;
+            // public Vector2[] keyPoints;
 
-            public Vector2 RightEye => keyPoints[0];
-            public Vector2 LeftEye => keyPoints[1];
+            // public Vector2 RightEye => keyPoints[0];
+            // public Vector2 LeftEye => keyPoints[1];
         }
 
         private const int KeyPointsNum = 6;
@@ -98,8 +99,8 @@ namespace Holistic
                 w /= width;
                 h /= height;
 
-                var keyPoints = new Vector2[KeyPointsNum];
-                for (var i = 0; i < KeyPointsNum; i++)
+                var keyPoints = new Vector2[2];
+                for (var i = 0; i < 2; i++)
                 {
                     var xi = output0[a, 4 + (2 * i) + 0];
                     var yi = output0[a, 4 + (2 * i) + 1];
@@ -109,11 +110,13 @@ namespace Holistic
                     yi /= height;
                     keyPoints[i] = new Vector2(xi, yi);
                 }
+                var vec = keyPoints[0] - keyPoints[1];
                 results.Add(new Result()
                 {
                     score = score,
                     rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
-                    keyPoints = keyPoints,
+                    // keyPoints = keyPoints,
+                    rotation =  -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
                 });
             }
             return NonMaxSuppression();
@@ -132,5 +135,10 @@ namespace Holistic
             }
             return filteredResults;
         }
+        // private static float GetFaceAngle(FaceDetect.Result detection)
+        // {
+        //     var vec = detection.RightEye - detection.LeftEye;
+        //     return -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg;
+        // }
     }
 }

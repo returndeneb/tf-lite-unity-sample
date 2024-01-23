@@ -11,7 +11,7 @@ namespace Holistic
         public class Result
         {
             public float score;
-            public Vector3[] joints;
+            public Vector3[] keyPoints;
         }
 
         public enum Dimension
@@ -50,7 +50,7 @@ namespace Holistic
             result = new Result()
             {
                 score = 0,
-                joints = new Vector3[JointCount],
+                keyPoints = new Vector3[JointCount],
             };
         }
 
@@ -64,7 +64,7 @@ namespace Holistic
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = palm.rect,
-                rotationDegree = CalcHandRotation(palm),
+                rotationDegree = palm.rotation,
                 shift = PalmShift,
                 scale = PalmScale,
                 mirrorHorizontal = resizeOptions.mirrorHorizontal,
@@ -89,7 +89,7 @@ namespace Holistic
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = palm.rect,
-                rotationDegree = CalcHandRotation(palm),
+                rotationDegree = palm.rotation,
                 shift = PalmShift,
                 scale = PalmScale,
                 mirrorHorizontal = resizeOptions.mirrorHorizontal,
@@ -125,7 +125,7 @@ namespace Holistic
             {
                 for (var i = 0; i < JointCount; i++)
                 {
-                    result.joints[i] = mtx.MultiplyPoint3x4(new Vector3(
+                    result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
                         output0[i * 2] * scale,
                         1f - output0[i * 2 + 1] * scale,
                         0
@@ -136,7 +136,7 @@ namespace Holistic
             {
                 for (var i = 0; i < JointCount; i++)
                 {
-                    result.joints[i] = mtx.MultiplyPoint3x4(new Vector3(
+                    result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
                         output0[i * 3] * scale,
                         1f - output0[i * 3 + 1] * scale,
                         output0[i * 3 + 2] * scale
@@ -145,12 +145,40 @@ namespace Holistic
             }
             return result;
         }
+        public static HandDetect.Result LandmarkToDetection(Result landmark)
+                {
+                    const int start = 9; // 
+                    const int end = 0; // 
+        
+                    var landmarkKeyPoints = landmark.keyPoints;
+                    
+                        
+                    
+                    for (var i = 0; i < landmarkKeyPoints.Length; i++)
+                    {
+                        landmarkKeyPoints[i].y = 1f - landmarkKeyPoints[i].y;
+                    }
+        
+                    var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
+                    var center = rect.center;
+                    // center.y = center.y;
+                    var size = Mathf.Min(rect.width, rect.height);
+                    
+                    var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
 
-        private static float CalcHandRotation(HandDetect.Result detection)
-        {
-            // Rotation based on Center of wrist - Middle finger
-            var vec = detection.keyPoints[0] - detection.keyPoints[2];
-            return -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg;
-        }
+                    // Debug.Log(size);
+                    return new HandDetect.Result()
+                    {
+                        score = landmark.score,
+                        rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size),
+                        rotation = -90f -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
+                    };
+                }
+        // private static float GetAngle(HandDetect.Result detection)
+        // {
+        //     // Rotation based on Center of wrist - Middle finger
+        //     var vec = detection.keyPoints[0] - detection.keyPoints[2];
+        //     return -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg;
+        // }
     }
 }

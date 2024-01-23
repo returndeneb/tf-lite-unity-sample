@@ -94,14 +94,18 @@ namespace Holistic
         private void DetectHand(Texture texture)
         {
             if (texture == null) return;
-            handDetect.Invoke(texture);
-            handDetectResults = handDetect.GetResults();
-            if (handDetectResults.Count <= 0) return;
+            // if (handDetectResults==null || handDetectResults.Count <= 0 )
+            // {
+                handDetect.Invoke(texture);
+                handDetectResults = handDetect.GetResults();
+                if (handDetectResults.Count <= 0) return;
+            // }
             handMesh.Invoke(texture, handDetectResults[0]);
             handMeshResult = handMesh.GetResult();
-            if (handDetectResults.Count <= 1) return;
-            handMesh2.Invoke(texture, handDetectResults[1]);
-            handMeshResult2 = handMesh2.GetResult();
+            handDetectResults[0] = HandMesh.LandmarkToDetection(handMeshResult);
+            // if (handDetectResults.Count <= 1) return;
+            // handMesh2.Invoke(texture, handDetectResults[1]);
+            // handMeshResult2 = handMesh2.GetResult();
         }
 
         private void DetectPose(Texture texture)
@@ -133,10 +137,13 @@ namespace Holistic
         {
             if (handMeshResult != null)
             {
+                
                 for (var i = 0; i < HandMesh.JointCount; i++)
                 {
-                    var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult.joints[i]);
-                    p1.z += handMeshResult.joints[i].z* (imgSize[2].x - imgSize[0].x);
+                    var kp = handMeshResult.keyPoints[i];
+                    kp.y = 1 - kp.y;
+                    var p1 = MathTF.Lerp(imgSize[0], imgSize[2], kp);
+                    p1.z += handMeshResult.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
                     
                     draw.Point(p1,0.1f);
                 }
@@ -146,8 +153,8 @@ namespace Holistic
             
             for (var i = 0; i < HandMesh.JointCount; i++)
             {
-                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult2.joints[i]);
-                p1.z += handMeshResult2.joints[i].z* (imgSize[2].x - imgSize[0].x);
+                var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult2.keyPoints[i]);
+                p1.z += handMeshResult2.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
                 
                 draw.Point(p1,0.1f);
             }
