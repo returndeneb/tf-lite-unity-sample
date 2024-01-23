@@ -30,7 +30,7 @@ namespace Holistic
             };
         }
 
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             throw new System.NotImplementedException("Use Invoke(Texture inputTex, FaceDetect.Result palm)");
         }
@@ -90,14 +90,14 @@ namespace Holistic
 
             var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
             var center = rect.center;
-            var size = Mathf.Min(rect.width, rect.height);
+            var size = Mathf.Min(rect.width, rect.height)*1.6f;
             
             var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
             
-            return new FaceDetect.Result()
+            return new FaceDetect.Result
             {
                 score = landmark.score,
-                rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size*1.6f, size*1.6f),
+                rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size),
                 rotation = -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
             };
         }

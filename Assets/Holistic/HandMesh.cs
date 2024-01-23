@@ -32,8 +32,8 @@ namespace Holistic
         private Matrix4x4 cropMatrix;
 
         private Dimension Dim { get; }
-        private Vector2 PalmShift { get; } = new Vector2(0f, 0f);
-        private Vector2 PalmScale { get; } = new Vector2(1f, 1f);
+        private Vector2 PalmShift { get; } = new (0f, 0f);
+        private Vector2 PalmScale { get; } = new (1f, 1f);
         public Matrix4x4 CropMatrix => cropMatrix;
 
         public HandMesh(string modelPath) : base(modelPath, Accelerator.NONE)
@@ -54,7 +54,7 @@ namespace Holistic
             };
         }
 
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             throw new System.NotImplementedException("Use Invoke(Texture inputTex, PalmDetect.Palm palm)");
         }
@@ -65,10 +65,10 @@ namespace Holistic
             {
                 rect = palm.rect,
                 rotationDegree = palm.rotation,
-                shift = PalmShift,
+                // shift = PalmShift,
                 scale = PalmScale,
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
+                // mirrorHorizontal = resizeOptions.mirrorHorizontal,
+                // mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             var rt = resizer.Resize(
@@ -90,10 +90,10 @@ namespace Holistic
             {
                 rect = palm.rect,
                 rotationDegree = palm.rotation,
-                shift = PalmShift,
+                // shift = PalmShift,
                 scale = PalmScale,
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
+                // mirrorHorizontal = resizeOptions.mirrorHorizontal,
+                // mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             var rt = resizer.Resize(
@@ -152,8 +152,6 @@ namespace Holistic
         
                     var landmarkKeyPoints = landmark.keyPoints;
                     
-                        
-                    
                     for (var i = 0; i < landmarkKeyPoints.Length; i++)
                     {
                         landmarkKeyPoints[i].y = 1f - landmarkKeyPoints[i].y;
@@ -161,17 +159,19 @@ namespace Holistic
         
                     var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
                     var center = rect.center;
-                    // center.y = center.y;
-                    var size = Mathf.Min(rect.width, rect.height);
+
+                    var size = Mathf.Min(rect.width, rect.height)*4.8f;
                     
                     var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
+                    var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
+                    const float shifting = 0.2f / 2.8f;
 
-                    // Debug.Log(size);
                     return new HandDetect.Result()
                     {
                         score = landmark.score,
-                        rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size),
-                        rotation = -90f -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
+                        rect = new Rect(center.x + shifting*Mathf.Sin(rot*Mathf.PI/180f)- size * 0.5f, center.y + 
+                            shifting*Mathf.Cos(rot*Mathf.PI/180f) - size * 0.5f, size, size),
+                        rotation = rot
                     };
                 }
         // private static float GetAngle(HandDetect.Result detection)

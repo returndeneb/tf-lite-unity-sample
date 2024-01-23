@@ -5,6 +5,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using TensorFlowLite;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Holistic
 {
@@ -59,7 +60,7 @@ namespace Holistic
             anchors = SsdAnchorsCalculator.Generate(options);
         }
 
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
 
@@ -128,11 +129,13 @@ namespace Holistic
                 var vec = keyPoints[0] - keyPoints[2];
                 var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
                 const float shifting = 0.2f / 2.8f;
+
                 results.Add(new Result()
                 {
                     score = score,
-                    rect = new Rect(cx + shifting*Mathf.Sin(rot*Mathf.PI/180f)- w * 0.5f, cy + shifting*Mathf.Cos(rot*Mathf.PI/180f) - h * 0.5f, w, h),
-                    // keyPoints = keyPoints,
+                    rect = new Rect(cx + shifting*Mathf.Sin(rot*Mathf.PI/180f)- w * 0.5f, cy + 
+                        shifting*Mathf.Cos(rot*Mathf.PI/180f) - h * 0.5f, w, h),
+
                     rotation =  rot
                 });
 

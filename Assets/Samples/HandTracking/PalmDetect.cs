@@ -58,7 +58,7 @@ namespace Samples.HandTracking
             Debug.AssertFormat(anchors.Length == 2944, "Anchors count must be 2944");
         }
 
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             // const float OFFSET = 128f;
             // const float SCALE = 1f / 128f;

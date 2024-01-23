@@ -1,213 +1,152 @@
 ﻿using System.Threading;
-using UnityEngine;
-#if TFLITE_UNITASK_ENABLED
 using Cysharp.Threading.Tasks;
-#endif // TFLITE_UNITASK_ENABLED
+using TensorFlowLite;
+using UnityEngine;
 
-namespace TensorFlowLite
+public abstract class ImageInterpreter<T> : System.IDisposable
+    where T : struct
 {
-    public abstract class ImageInterpreter<T> : System.IDisposable
-        where T : struct
+    public enum Accelerator
     {
-        /// <summary>
-        /// Accelerator options
-        /// </summary>
-        public enum Accelerator
+        NONE = 0,
+        NNAPI = 1,
+        GPU = 2,
+        XNNPACK = 4,
+    }
+
+    protected readonly Interpreter interpreter;
+    protected readonly int width;
+    protected readonly int height;
+    protected readonly int channels;
+    protected readonly T[,,] inputTensor;
+    protected readonly TextureToTensor tex2Tensor;
+    protected readonly TextureResizer resizer;
+    protected TextureResizer.ResizeOptions resizeOptions;
+
+    public Texture InputTex
+    {
+        get
         {
-            NONE = 0,
-            NNAPI = 1,
-            GPU = 2,
-            // HEXAGON = 3,
-            XNNPACK = 4,
-            // The EdgeTpu in Pixel devices.
-            // EDGETPU = 5,
-            // The Coral EdgeTpu Dev Board / USB accelerator.
-            // EDGETPU_CORAL = 6,
+            return (tex2Tensor.texture != null)
+                ? tex2Tensor.texture as Texture
+                : resizer.outputTexture as Texture;
         }
+    }
+    public Material TransformMat => resizer.Material;
 
-        protected readonly Interpreter interpreter;
-        protected readonly int width;
-        protected readonly int height;
-        protected readonly int channels;
-        protected readonly T[,,] inputTensor;
-        protected readonly TextureToTensor tex2Tensor;
-        protected readonly TextureResizer resizer;
-        protected TextureResizer.ResizeOptions resizeOptions;
+    public TextureResizer.ResizeOptions ResizeOptions
+    {
+        get => resizeOptions;
+        set => resizeOptions = value;
+    }
 
-        public Texture InputTex
+    public ImageInterpreter(byte[] modelData, InterpreterOptions options)
+    {
+        try
         {
-            get
-            {
-                return (tex2Tensor.texture != null)
-                    ? tex2Tensor.texture as Texture
-                    : resizer.outputTexture as Texture;
-            }
+            interpreter = new Interpreter(modelData, options);
         }
-        public Material TransformMat => resizer.Material;
-
-        public TextureResizer.ResizeOptions ResizeOptions
-        {
-            get => resizeOptions;
-            set => resizeOptions = value;
-        }
-
-        public ImageInterpreter(byte[] modelData, InterpreterOptions options)
-        {
-            try
-            {
-                interpreter = new Interpreter(modelData, options);
-            }
-            catch (System.Exception e)
-            {
-                interpreter?.Dispose();
-                throw e;
-            }
-
-            interpreter.LogIOInfo();
-            {
-                var inputShape0 = interpreter.GetInputTensorInfo(0).shape;
-                height = inputShape0[1];
-                width = inputShape0[2];
-                channels = inputShape0[3];
-                inputTensor = new T[height, width, channels];
-
-                int inputCount = interpreter.GetInputTensorCount();
-                for (int i = 0; i < inputCount; i++)
-                {
-                    int[] shape = interpreter.GetInputTensorInfo(i).shape;
-                    interpreter.ResizeInputTensor(i, shape);
-                }
-                interpreter.AllocateTensors();
-            }
-
-            tex2Tensor = new TextureToTensor();
-            resizer = new TextureResizer();
-            resizeOptions = new TextureResizer.ResizeOptions()
-            {
-                aspectMode = AspectMode.Fit,
-                rotationDegree = 0,
-                mirrorHorizontal = false,
-                mirrorVertical = false,
-                width = width,
-                height = height,
-            };
-        }
-
-        public ImageInterpreter(string modelPath, InterpreterOptions options)
-            : this(FileUtil.LoadFile(modelPath), options)
-        {
-        }
-
-        public ImageInterpreter(string modelPath, Accelerator accelerator)
-            : this(modelPath, CreateOptions(accelerator))
-        {
-        }
-
-        protected static InterpreterOptions CreateOptions(Accelerator accelerator)
-        {
-            var options = new InterpreterOptions();
-
-            switch (accelerator)
-            {
-                case Accelerator.NONE:
-                    options.threads = SystemInfo.processorCount;
-                    break;
-                case Accelerator.NNAPI:
-                    if (Application.platform == RuntimePlatform.Android)
-                    {
-#if UNITY_ANDROID && !UNITY_EDITOR
-                        // Create NNAPI delegate with default options
-                        options.AddDelegate(new NNAPIDelegate());
-#endif // UNITY_ANDROID && !UNITY_EDITOR
-                    }
-                    else
-                    {
-                        Debug.LogError("NNAPI is only supported on Android");
-                    }
-                    break;
-                case Accelerator.GPU:
-                    options.AddGpuDelegate();
-                    break;
-                case Accelerator.XNNPACK:
-                    options.threads = SystemInfo.processorCount;
-                    options.AddDelegate(XNNPackDelegate.DelegateForType(typeof(T)));
-                    break;
-                default:
-                    options.Dispose();
-                    throw new System.NotImplementedException();
-            }
-            return options;
-        }
-
-        public virtual void Dispose()
+        catch (System.Exception e)
         {
             interpreter?.Dispose();
-            tex2Tensor?.Dispose();
-            resizer?.Dispose();
+            throw e;
         }
 
-        public abstract void Invoke(Texture inputTex);
-
-        protected void ToTensor(Texture inputTex, float[,,] inputs)
+        interpreter.LogIOInfo();
         {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2Tensor.ToTensor(tex, inputs);
+            var inputShape0 = interpreter.GetInputTensorInfo(0).shape;
+            height = inputShape0[1];
+            width = inputShape0[2];
+            channels = inputShape0[3];
+            inputTensor = new T[height, width, channels];
+
+            var inputCount = interpreter.GetInputTensorCount();
+            for (var i = 0; i < inputCount; i++)
+            {
+                var shape = interpreter.GetInputTensorInfo(i).shape;
+                interpreter.ResizeInputTensor(i, shape);
+            }
+            interpreter.AllocateTensors();
         }
 
-        protected void ToTensor(RenderTexture inputTex, float[,,] inputs, bool resize)
+        tex2Tensor = new TextureToTensor();
+        resizer = new TextureResizer();
+        resizeOptions = new TextureResizer.ResizeOptions()
         {
-            RenderTexture tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
-            tex2Tensor.ToTensor(tex, inputs);
-        }
+            aspectMode = AspectMode.Fit,
+            rotationDegree = 0,
+            mirrorHorizontal = false,
+            mirrorVertical = false,
+            width = width,
+            height = height,
+        };
+    }
 
-        protected void ToTensor(Texture inputTex, float[,,] inputs, float offset, float scale)
-        {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2Tensor.ToTensor(tex, inputs, offset, scale);
-        }
+    public ImageInterpreter(string modelPath, InterpreterOptions options)
+        : this(FileUtil.LoadFile(modelPath), options)
+    {
+    }
 
-        protected void ToTensor(Texture inputTex, sbyte[,,] inputs)
-        {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2Tensor.ToTensor(tex, inputs);
-        }
+    public ImageInterpreter(string modelPath, Accelerator accelerator)
+        : this(modelPath, CreateOptions(accelerator))
+    {
+    }
 
-        protected void ToTensor(Texture inputTex, int[,,] inputs)
-        {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            tex2Tensor.ToTensor(tex, inputs);
-        }
+    protected static InterpreterOptions CreateOptions(Accelerator accelerator)
+    {
+        var options = new InterpreterOptions();
 
-        // ToTensorAsync methods are only available when UniTask is installed via Unity Package Manager.
-        // TODO: consider using native Task or Unity Coroutine
-#if TFLITE_UNITASK_ENABLED
-        protected async UniTask<bool> ToTensorAsync(Texture inputTex, float[,,] inputs, CancellationToken cancellationToken)
+        switch (accelerator)
         {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
-            return true;
+            case Accelerator.NONE:
+                options.threads = SystemInfo.processorCount;
+                break;
+            case Accelerator.NNAPI:
+                break;
+            case Accelerator.GPU:
+                options.AddGpuDelegate();
+                break;
+            case Accelerator.XNNPACK:
+                options.threads = SystemInfo.processorCount;
+                options.AddDelegate(XNNPackDelegate.DelegateForType(typeof(T)));
+                break;
+            default:
+                options.Dispose();
+                throw new System.NotImplementedException();
         }
+        return options;
+    }
 
-        protected async UniTask<bool> ToTensorAsync(RenderTexture inputTex, float[,,] inputs, bool resize, CancellationToken cancellationToken)
-        {
-            RenderTexture tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
-            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
-            return true;
-        }
+    public virtual void Dispose()
+    {
+        interpreter?.Dispose();
+        tex2Tensor?.Dispose();
+        resizer?.Dispose();
+    }
 
-        protected async UniTask<bool> ToTensorAsync(Texture inputTex, sbyte[,,] inputs, CancellationToken cancellationToken)
-        {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
-            return true;
-        }
+    protected void ToTensor(Texture inputTex, float[,,] inputs)
+    {
+        var tex = resizer.Resize(inputTex, resizeOptions);
+        tex2Tensor.ToTensor(tex, inputs);
+    }
 
-        protected async UniTask<bool> ToTensorAsync(Texture inputTex, int[,,] inputs, CancellationToken cancellationToken)
-        {
-            RenderTexture tex = resizer.Resize(inputTex, resizeOptions);
-            await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
-            return true;
-        }
-#endif // TFLITE_UNITASK_ENABLED
+    protected void ToTensor(RenderTexture inputTex, float[,,] inputs, bool resize)
+    {
+        var tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
+        tex2Tensor.ToTensor(tex, inputs);
+    }
+    
+    protected async UniTask<bool> ToTensorAsync(Texture inputTex, float[,,] inputs, CancellationToken cancellationToken)
+    {
+        var tex = resizer.Resize(inputTex, resizeOptions);
+        await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
+        return true;
+    }
+
+    protected async UniTask<bool> ToTensorAsync(RenderTexture inputTex, float[,,] inputs, bool resize, CancellationToken cancellationToken)
+    {
+        var tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
+        await tex2Tensor.ToTensorAsync(tex, inputs, cancellationToken);
+        return true;
     }
 }

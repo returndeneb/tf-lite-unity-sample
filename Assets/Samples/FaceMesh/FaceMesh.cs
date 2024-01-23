@@ -33,7 +33,7 @@ namespace TensorFlowLite
             };
         }
 
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             throw new System.NotImplementedException("Use Invoke(Texture inputTex, FaceDetect.Result palm)");
         }

@@ -141,7 +141,7 @@ namespace Holistic
                 for (var i = 0; i < HandMesh.JointCount; i++)
                 {
                     var kp = handMeshResult.keyPoints[i];
-                    // kp.y = 1 - kp.y;
+                    kp.y = 1 - kp.y;
                     var p1 = MathTF.Lerp(imgSize[0], imgSize[2], kp);
                     p1.z += handMeshResult.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
                     

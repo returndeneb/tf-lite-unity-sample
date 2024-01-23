@@ -89,7 +89,7 @@ namespace Holistic
             keypointsCount = (odim0[2] - 4) / 2;
         }
 
-        public override void Invoke(Texture inputTex)
+        public void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
 

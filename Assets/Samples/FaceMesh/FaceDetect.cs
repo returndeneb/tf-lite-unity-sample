@@ -72,7 +72,7 @@ namespace Samples.FaceMesh
             UnityEngine.Debug.AssertFormat(anchors.Length == 896, $"Anchors count must be 896, but was {anchors.Length}");
         }
 
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
 

@@ -77,7 +77,7 @@ namespace Holistic
             base.Dispose();
         }
 
-        public override void Invoke(Texture inputTex)
+        public void Invoke(Texture inputTex)
         {
             throw new System.NotImplementedException("Use Invoke(Texture, PalmDetect.Result)");
         }

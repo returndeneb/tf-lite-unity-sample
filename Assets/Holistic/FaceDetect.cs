@@ -62,7 +62,7 @@ namespace Holistic
 
             anchors = SsdAnchorsCalculator.Generate(options);
         }
-        public override void Invoke(Texture inputTex)
+        public virtual void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
             
