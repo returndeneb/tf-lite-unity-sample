@@ -28,7 +28,7 @@ namespace TensorFlowLite
             var rotation = Quaternion.Euler(0, 0, options.rotationDegree);
             var size = Vector2.Scale(options.rect.size, options.scale); // elementwise product
             // Calc center position
-            Debug.Log(options.rect.center);
+            // Debug.Log(options.rect.center);
             var center = options.rect.center - new Vector2(0.5f, 0.5f);
 
             center = rotation * center;

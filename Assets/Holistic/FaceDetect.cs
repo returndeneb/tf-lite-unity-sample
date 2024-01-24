@@ -107,11 +107,11 @@ namespace Holistic
                     keyPoints[i] = new Vector2(xi, yi);
                 }
                 var vec = keyPoints[0] - keyPoints[1];
+                
                 results.Add(new Result()
                 {
                     score = score,
                     rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
-                    // keyPoints = keyPoints,
                     rotation =  -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
                 });
             }

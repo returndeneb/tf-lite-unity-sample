@@ -81,15 +81,15 @@ namespace Holistic
         private void DetectFace(Texture texture)
         {
             if (texture == null) return;
-            if (faceDetectResult == null)
-            {
+            // if (faceDetectResult == null)
+            // {
                 faceDetect.Invoke(texture);
                 faceDetectResult = faceDetect.GetResults().FirstOrDefault();
                 if (faceDetectResult == null) return;
-            }
+            // }
             faceMesh.Invoke(texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
-            faceDetectResult = FaceMesh.LandmarkToDetection(faceMeshResult);
+            // faceDetectResult = FaceMesh.LandmarkToDetection(faceMeshResult);
         }
         private void DetectHand(Texture texture)
         {
@@ -111,14 +111,14 @@ namespace Holistic
         private void DetectPose(Texture texture)
         {
             if (texture == null) return;
-            if (poseDetectResult?.keypoints == null)
-            {
+            // if (poseDetectResult?.keypoints == null)
+            // {
                 poseDetect.Invoke(texture);
                 poseDetectResult = poseDetect.GetResults();
                 if (poseDetectResult?.keypoints == null) return;
-            }
+            // }
             poseMeshResult = poseMesh.Invoke(texture, poseDetectResult);
-            poseDetectResult = PoseMesh.LandmarkToDetection(poseMeshResult);
+            // poseDetectResult = PoseMesh.LandmarkToDetection(poseMeshResult);
         }
             
         private void DrawFace()
@@ -127,7 +127,7 @@ namespace Holistic
             for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
             {
                 var kp = faceMeshResult.keyPoints[i];
-                kp.y = 1 - kp.y;
+                // kp.y = 1 - kp.y;
                 var p = MathTF.Lerp(imgSize[0], imgSize[2], kp);
                 p.z = faceMeshResult.keyPoints[i].z * (imgSize[2].x - imgSize[0].x) / 2;
                 draw.Point(p);

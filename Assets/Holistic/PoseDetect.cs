@@ -121,23 +121,23 @@ namespace Holistic
         {
             results.Clear();
 
-            for (int i = 0; i < anchors.Length; i++)
+            for (var i = 0; i < anchors.Length; i++)
             {
-                float score = MathTF.Sigmoid(output1[i]);
+                var score = MathTF.Sigmoid(output1[i]);
                 if (score < 0.5f)
                 {
                     continue;
                 }
 
-                SsdAnchor anchor = anchors[i];
+                var anchor = anchors[i];
 
-                float sx = output0[i, 0];
-                float sy = output0[i, 1];
-                float w = output0[i, 2];
-                float h = output0[i, 3];
+                var sx = output0[i, 0];
+                var sy = output0[i, 1];
+                var w = output0[i, 2];
+                var h = output0[i, 3];
 
-                float cx = sx + anchor.x * width;
-                float cy = sy + anchor.y * height;
+                var cx = sx + anchor.x * width;
+                var cy = sy + anchor.y * height;
 
                 cx /= width;
                 cy /= height;
@@ -145,10 +145,10 @@ namespace Holistic
                 h /= height;
 
                 var keypoints = new Vector2[keypointsCount];
-                for (int j = 0; j < keypointsCount; j++)
+                for (var j = 0; j < keypointsCount; j++)
                 {
-                    float lx = output0[i, 4 + (2 * j) + 0];
-                    float ly = output0[i, 4 + (2 * j) + 1];
+                    var lx = output0[i, 4 + (2 * j) + 0];
+                    var ly = output0[i, 4 + (2 * j) + 1];
                     lx += anchor.x * width;
                     ly += anchor.y * height;
                     lx /= width;
@@ -165,13 +165,7 @@ namespace Holistic
             }
 
             // No result
-            if (results.Count == 0)
-            {
-                return Result.Negative;
-            }
-
-            return NonMaxSuppression(results, 0.5f).First();
-            
+            return results.Count == 0 ? Result.Negative : NonMaxSuppression(results, 0.5f).First();
         }
 
         private static readonly List<Result> nonMaxSupressionCache = new List<Result>();
