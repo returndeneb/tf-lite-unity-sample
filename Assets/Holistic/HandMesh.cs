@@ -67,14 +67,12 @@ namespace Holistic
                 rotationDegree = palm.rotation,
                 // shift = PalmShift,
                 scale = PalmScale,
-                // mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                // mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             var rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
-                TextureResizer.GetTextureST(inputTex, resizeOptions));
+                TextureResizer.GetTextureSt(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
             interpreter.SetInputTensorData(0, inputTensor);
@@ -92,14 +90,12 @@ namespace Holistic
                 rotationDegree = palm.rotation,
                 // shift = PalmShift,
                 scale = PalmScale,
-                // mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                // mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             var rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
-                TextureResizer.GetTextureST(inputTex, resizeOptions));
+                TextureResizer.GetTextureSt(inputTex, resizeOptions));
             await ToTensorAsync(rt, inputTensor, false, cancellationToken);
             await UniTask.SwitchToThreadPool();
 

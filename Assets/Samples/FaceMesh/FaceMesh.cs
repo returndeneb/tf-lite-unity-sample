@@ -46,14 +46,12 @@ namespace TensorFlowLite
                 rotationDegree = CalcFaceRotation(ref face) ,
                 shift = FaceShift,
                 scale = FaceScale,
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             RenderTexture rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
-                TextureResizer.GetTextureST(inputTex, resizeOptions));
+                TextureResizer.GetTextureSt(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
             interpreter.SetInputTensorData(0, inputTensor);

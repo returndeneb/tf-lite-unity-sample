@@ -1,24 +1,19 @@
-﻿using TensorFlowLite;
+﻿using System;
+using TensorFlowLite;
 using UnityEngine;
 
-public class TextureResizer : System.IDisposable
+public class TextureResizer : IDisposable
 {
     public struct ResizeOptions
     {
         public int width;
         public int height;
-        public float rotationDegree;
-        public bool mirrorHorizontal;
-        public bool mirrorVertical;
         public AspectMode aspectMode;
     }
 
     private Material blitMaterial;
-
-    static readonly int _VertTransform = Shader.PropertyToID("_VertTransform");
-    static readonly int _UVRect = Shader.PropertyToID("_UVRect");
-
-    public RenderTexture outputTexture { get; private set; }
+    
+    public RenderTexture OutputTexture { get; private set; }
 
     public Material Material
     {
@@ -31,55 +26,55 @@ public class TextureResizer : System.IDisposable
 
     public Vector4 UVRect
     {
-        get => Material.GetVector(_UVRect);
-        set => Material.SetVector(_UVRect, value);
+        set => Material.SetVector(Shader.PropertyToID("_UVRect"), value);
     }
 
     public Matrix4x4 VertexTransform
     {
-        get => Material.GetMatrix(_VertTransform);
-        set => Material.SetMatrix(_VertTransform, value);
+        set => Material.SetMatrix(Shader.PropertyToID("_VertTransform"), value);
     }
     
 
     public void Dispose()
     {
-        DisposeUtil.TryDispose(outputTexture);
+        DisposeUtil.TryDispose(OutputTexture);
         DisposeUtil.TryDispose(blitMaterial);
     }
 
 
-    public RenderTexture Resize(Texture texture, ResizeOptions options)
+    public RenderTexture Resize(Texture texture, ResizeOptions options) // 카메라 이미지를 줄일때만 쓰임
     {
-        VertexTransform = GetVertTransform(options.rotationDegree, options.mirrorHorizontal, options.mirrorVertical);
-        UVRect = GetTextureST(texture, options);
-        return ApplyResize(texture, options.width, options.height);
+        VertexTransform = Matrix4x4.identity; // No rotation
+        UVRect = GetTextureSt(texture, options);
+        
+        if (OutputTexture == null || OutputTexture.width != options.width || OutputTexture.height != options.height)
+        {
+            DisposeUtil.TryDispose(OutputTexture);
+            OutputTexture = new RenderTexture(options.width, options.height, 0, RenderTextureFormat.ARGB32);
+        }
+        Graphics.Blit(texture, OutputTexture, Material, 0);
+        return OutputTexture;
     }
 
-    public RenderTexture Resize(Texture texture,
-        int width, int height,
-        Matrix4x4 transform,
-        Vector4 uvRect)
+    public RenderTexture Resize(Texture texture, int width, int height, Matrix4x4 transform, Vector4 uvRect)
     {
         VertexTransform = transform;
         UVRect = uvRect;
-        return ApplyResize(texture, width, height);
-    }
-
-    private RenderTexture ApplyResize(Texture intputTexture, int outputWidth, int outputHeight)
-    {
-        if (outputTexture == null || outputTexture.width != outputWidth || outputTexture.height != outputHeight)
+        if (OutputTexture == null || OutputTexture.width != width || OutputTexture.height != height)
         {
-            DisposeUtil.TryDispose(outputTexture);
-            outputTexture = new RenderTexture(outputWidth, outputHeight, 0, RenderTextureFormat.ARGB32);
+            DisposeUtil.TryDispose(OutputTexture);
+            OutputTexture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32);
         }
-        
-        Graphics.Blit(intputTexture, outputTexture, Material, 0);
-        return outputTexture;
+        Graphics.Blit(texture, OutputTexture, Material, 0);
+        return OutputTexture;
     }
+    
 
-    public static Vector4 GetTextureSt(float srcAspect, float dstAspect, AspectMode mode)
+    public static Vector4 GetTextureSt(Texture sourceTex, ResizeOptions options)
     {
+        var srcAspect = (float)sourceTex.width / sourceTex.height;
+        var dstAspect = (float)options.width / options.height;
+        var mode = options.aspectMode;
         switch (mode)
         {
             case AspectMode.None:
@@ -106,32 +101,8 @@ public class TextureResizer : System.IDisposable
                     var s = srcAspect / dstAspect;
                     return new Vector4(1, s, 0, (1 - s) / 2);
                 }
+            default:
+                throw new ArgumentOutOfRangeException();
         }
-        throw new System.Exception("Unknown aspect mode");
     }
-
-    public static Vector4 GetTextureST(Texture sourceTex, ResizeOptions options)
-    {
-        return GetTextureSt(
-            (float)sourceTex.width / sourceTex.height, // src
-            (float)options.width / options.height, // dst
-            options.aspectMode);
-    }
-
-    private static readonly Matrix4x4 PushMatrix = Matrix4x4.Translate(new Vector3(0.5f, 0.5f, 0));
-    private static readonly Matrix4x4 PopMatrix = Matrix4x4.Translate(new Vector3(-0.5f, -0.5f, 0));
-    internal static Matrix4x4 GetVertTransform(float rotation, bool mirrorHorizontal, bool mirrorVertical)
-    {
-        var scale = new Vector3(
-            mirrorHorizontal ? -1 : 1,
-            mirrorVertical ? -1 : 1,
-            1);
-        var trs = Matrix4x4.TRS(
-            Vector3.zero,
-            Quaternion.Euler(0, 0, rotation),
-            scale
-        );
-        return PushMatrix * trs * PopMatrix;
-    }
-
 }

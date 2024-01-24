@@ -89,7 +89,7 @@ namespace Holistic
             var rt = resizer.Resize(
                inputTex, resizeOptions.width, resizeOptions.height,
                cropMatrix,
-               TextureResizer.GetTextureST(inputTex, resizeOptions));
+               TextureResizer.GetTextureSt(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
             InvokeInternal();
@@ -104,7 +104,7 @@ namespace Holistic
             var rt = resizer.Resize(
               inputTex, resizeOptions.width, resizeOptions.height,
               cropMatrix,
-              TextureResizer.GetTextureST(inputTex, resizeOptions));
+              TextureResizer.GetTextureSt(inputTex, resizeOptions));
             await ToTensorAsync(rt, inputTensor, false, cancellationToken);
             await UniTask.SwitchToThreadPool();
 
@@ -212,8 +212,6 @@ namespace Holistic
                 rotationDegree = rotation,
                 shift = new Vector2(0, 0),
                 scale = new Vector2(1.5f, 1.5f),
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
             });
         }
 

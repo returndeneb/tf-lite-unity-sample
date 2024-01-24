@@ -23,24 +23,14 @@ public abstract class ImageInterpreter<T> : System.IDisposable
     protected readonly TextureResizer resizer;
     protected TextureResizer.ResizeOptions resizeOptions;
 
-    public Texture InputTex
-    {
-        get
-        {
-            return (tex2Tensor.texture != null)
-                ? tex2Tensor.texture as Texture
-                : resizer.outputTexture as Texture;
-        }
-    }
+    public Texture InputTex =>
+        tex2Tensor.texture != null
+            ? tex2Tensor.texture
+            : resizer.OutputTexture;
+
     public Material TransformMat => resizer.Material;
 
-    public TextureResizer.ResizeOptions ResizeOptions
-    {
-        get => resizeOptions;
-        set => resizeOptions = value;
-    }
-
-    public ImageInterpreter(byte[] modelData, InterpreterOptions options)
+    private ImageInterpreter(byte[] modelData, InterpreterOptions options)
     {
         try
         {
@@ -49,7 +39,7 @@ public abstract class ImageInterpreter<T> : System.IDisposable
         catch (System.Exception e)
         {
             interpreter?.Dispose();
-            throw e;
+            throw;
         }
 
         interpreter.LogIOInfo();
@@ -71,12 +61,9 @@ public abstract class ImageInterpreter<T> : System.IDisposable
 
         tex2Tensor = new TextureToTensor();
         resizer = new TextureResizer();
-        resizeOptions = new TextureResizer.ResizeOptions()
+        resizeOptions = new TextureResizer.ResizeOptions
         {
             aspectMode = AspectMode.Fit,
-            rotationDegree = 0,
-            mirrorHorizontal = false,
-            mirrorVertical = false,
             width = width,
             height = height,
         };
@@ -84,13 +71,11 @@ public abstract class ImageInterpreter<T> : System.IDisposable
 
     public ImageInterpreter(string modelPath, InterpreterOptions options)
         : this(FileUtil.LoadFile(modelPath), options)
-    {
-    }
+    { }
 
     public ImageInterpreter(string modelPath, Accelerator accelerator)
         : this(modelPath, CreateOptions(accelerator))
-    {
-    }
+    { }
 
     protected static InterpreterOptions CreateOptions(Accelerator accelerator)
     {

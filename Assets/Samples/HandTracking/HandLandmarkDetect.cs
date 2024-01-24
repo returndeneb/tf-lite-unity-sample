@@ -68,14 +68,12 @@ namespace Samples.HandTracking
                 rotationDegree = CalcHandRotation(ref palm) * Mathf.Rad2Deg,
                 shift = PalmShift,
                 scale = PalmScale,
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             RenderTexture rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
-                TextureResizer.GetTextureST(inputTex, resizeOptions));
+                TextureResizer.GetTextureSt(inputTex, resizeOptions));
             ToTensor(rt, inputTensor, false);
 
             //
@@ -93,14 +91,12 @@ namespace Samples.HandTracking
                 rotationDegree = CalcHandRotation(ref palm) * Mathf.Rad2Deg,
                 shift = PalmShift,
                 scale = PalmScale,
-                mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                mirrorVertical = resizeOptions.mirrorVertical,
             });
 
             RenderTexture rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
-                TextureResizer.GetTextureST(inputTex, resizeOptions));
+                TextureResizer.GetTextureSt(inputTex, resizeOptions));
             await ToTensorAsync(rt, inputTensor, false, cancellationToken);
             await UniTask.SwitchToThreadPool();
 

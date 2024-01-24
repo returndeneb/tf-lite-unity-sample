@@ -19,7 +19,7 @@ namespace Holistic
         private Matrix4x4 cropMatrix;
 
         private Vector2 FaceShift { get; set; } = new(0f, 0f);
-        private Vector2 FaceScale { get; set; } = new(1f, 1f);
+        private Vector2 FaceScale { get; set; } = new(1.6f, 1.6f);
         
         public FaceMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
@@ -29,28 +29,26 @@ namespace Holistic
                 keyPoints = new Vector3[KeypointCount],
             };
         }
-
-        public virtual void Invoke(Texture inputTex)
-        {
-            throw new System.NotImplementedException("Use Invoke(Texture inputTex, FaceDetect.Result palm)");
-        }
+        
 
         public void Invoke(Texture inputTex, FaceDetect.Result face)
         {
-            cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
+            cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options
             {
                 rect = face.rect,
                 rotationDegree = face.rotation,
                 // shift = FaceShift,
                 scale = FaceScale,
-                // mirrorHorizontal = resizeOptions.mirrorHorizontal,
-                // mirrorVertical = resizeOptions.mirrorVertical,
             });
-
+            
+            // Debug.Log(cropMatrix);
             var rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
                 cropMatrix,
-                TextureResizer.GetTextureST(inputTex, resizeOptions));
+                TextureResizer.GetTextureSt(inputTex, resizeOptions));
+
+            // var rt = resizer.Resize(inputTex, resizeOptions);
+            
             ToTensor(rt, inputTensor, false);
 
             interpreter.SetInputTensorData(0, inputTensor);
@@ -87,17 +85,13 @@ namespace Holistic
             {
                 landmarkKeyPoints[i].y = 1f - landmarkKeyPoints[i].y;
             }
-
-            var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
-            var center = rect.center;
-            var size = Mathf.Min(rect.width, rect.height)*1.6f;
             
             var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
             
             return new FaceDetect.Result
             {
                 score = landmark.score,
-                rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size),
+                rect = RectExtension.GetBoundingBox(landmarkKeyPoints),
                 rotation = -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
             };
         }
