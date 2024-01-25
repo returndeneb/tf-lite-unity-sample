@@ -9,26 +9,24 @@ using UnityEngine.Rendering;
 
 namespace Holistic
 {
-    public class HandDetect : ImageInterpreter<float>
+    public sealed class HandDetect : ImageInterpreter<float>
     {
         public struct Result
         {
             public float score;
             public Rect rect;
-            // public Vector2[] keyPoints;
             public float rotation;
         }
 
-        private const int MaxPalmNum = 4;
+        private const int MaxPalmNum = 2;
 
-        // classifications / scores
+        //scores
         private readonly float[] output0 = new float[2944];
 
-        // regress / points
+        // key points
         // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
         // 4 - 17 are 7 hand keypoint x and y coordinates: x1,y1,x2,y2,...x7,y7
         private readonly float[,] output1 = new float[2944, 18];
-        private readonly float [] output2 = new float[2944];
         
         private readonly SsdAnchor[] anchors;
         private readonly List<Result> results = new();
@@ -60,7 +58,7 @@ namespace Holistic
             anchors = SsdAnchorsCalculator.Generate(options);
         }
 
-        public virtual void Invoke(Texture inputTex)
+        public void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
 
@@ -71,22 +69,22 @@ namespace Holistic
             interpreter.GetOutputTensorData(1, output1);
         }
 
-        // public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
-        // {
-        //     await ToTensorAsync(inputTex, inputTensor, cancellationToken);
-        //     await UniTask.SwitchToThreadPool();
-        //
-        //     interpreter.SetInputTensorData(0, inputTensor);
-        //     interpreter.Invoke();
-        //
-        //     interpreter.GetOutputTensorData(0, output0);
-        //     interpreter.GetOutputTensorData(1, output1);
-        //
-        //     var invokeAsync = GetResults();
-        //
-        //     await UniTask.SwitchToMainThread(cancellationToken);
-        //     return invokeAsync;
-        // }
+        public async UniTask<List<Result>> InvokeAsync(Texture inputTex, CancellationToken cancellationToken)
+        {
+            await ToTensorAsync(inputTex, inputTensor, cancellationToken);
+            await UniTask.SwitchToThreadPool();
+        
+            interpreter.SetInputTensorData(0, inputTensor);
+            interpreter.Invoke();
+        
+            interpreter.GetOutputTensorData(0, output0);
+            interpreter.GetOutputTensorData(1, output1);
+        
+            var invokeAsync = GetResults();
+        
+            await UniTask.SwitchToMainThread(cancellationToken);
+            return invokeAsync;
+        }
 
         public List<Result> GetResults(float scoreThreshold = 0.7f)
         {
@@ -102,28 +100,17 @@ namespace Holistic
 
                 var anchor = anchors[i];
 
-                var sx = output1[i, 0];
-                var sy = output1[i, 1];
-                var w = output1[i, 2];
-                var h = output1[i, 3];
-
-                var cx = sx + anchor.x * width;
-                var cy = sy + anchor.y * height;
-
-                cx /= width;
-                cy /= height;
-                w /= width/2.8f;
-                h /= height/2.8f;
-
-                var keyPoints = new Vector2[7];
-                for (var j = 0; j < 7; j++)
+                var cx = output1[i, 0] / width + anchor.x;
+                var cy = output1[i, 1] / height + anchor.y;
+                var w = output1[i, 2] / width;
+                var h = output1[i, 3] / height;
+                
+                var keyPoints = new Vector2[3];
+                for (var j = 0; j < 3; j++)
                 {
-                    var lx = output1[i, 4 + (2 * j) + 0];
-                    var ly = output1[i, 4 + (2 * j) + 1];
-                    lx += anchor.x * width;
-                    ly += anchor.y * height;
-                    lx /= width;
-                    ly /= height;
+                    var lx = output1[i, 4 + (2 * j) + 0]/width +anchor.x;
+                    var ly = output1[i, 4 + (2 * j) + 1]/height +anchor.y;
+                    
                     keyPoints[j] = new Vector2(lx, ly);
                 }
                 var vec = keyPoints[0] - keyPoints[2];
@@ -138,7 +125,6 @@ namespace Holistic
 
                     rotation =  rot
                 });
-
             }
 
             return NonMaxSuppression(results);

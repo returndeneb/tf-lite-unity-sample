@@ -79,5 +79,27 @@ namespace TensorFlowLite
 
             return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
         }
+        
+        public static Rect GetBoundingBox(Vector3[] points, int[] selectedIndices)
+        {
+            float minX = float.MaxValue;
+            float minY = float.MaxValue;
+            float maxX = float.MinValue;
+            float maxY = float.MinValue;
+
+            foreach (var index in selectedIndices)
+            {
+                if (index >= 0 && index < points.Length)
+                {
+                    var point = points[index];
+                    minX = Mathf.Min(minX, point.x);
+                    minY = Mathf.Min(minY, point.y);
+                    maxX = Mathf.Max(maxX, point.x);
+                    maxY = Mathf.Max(maxY, point.y);
+                }
+            }
+
+            return new Rect(minX, minY, maxX - minX, maxY - minY);
+        }
     }
 }

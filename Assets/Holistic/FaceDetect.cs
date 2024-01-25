@@ -19,12 +19,11 @@ namespace Holistic
 
         private const int KeyPointsNum = 6;
 
-        // regress / points
         // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
         // 4 - 15 are 6 keypoint x and y coordinates: x0,y0,x1,y1,x2,y2,x3,y3
         private readonly float[,] output0 = new float[896, 16];
 
-        // classifications / scores
+        // scores
         private readonly float[] output1 = new float[896];
 
         private readonly SsdAnchor[] anchors;
@@ -81,29 +80,16 @@ namespace Holistic
                     continue;
                 }
                 var anchor = anchors[a];
-
-                var dx = output0[a, 0];
-                var dy = output0[a, 1];
-                var w = output0[a, 2];
-                var h = output0[a, 3];
-
-                var x = dx + anchor.x * width;
-                var y = dy + anchor.y * height;
-
-                x /= width;
-                y /= height;
-                w /= width;
-                h /= height;
-
+                var x = output0[a, 0]/width + anchor.x;
+                var y = output0[a, 1]/height + anchor.y;
+                var w = output0[a, 2]/width;
+                var h = output0[a, 3]/height;
+                
                 var keyPoints = new Vector2[2];
                 for (var i = 0; i < 2; i++)
                 {
-                    var xi = output0[a, 4 + (2 * i) + 0];
-                    var yi = output0[a, 4 + (2 * i) + 1];
-                    xi += anchor.x * width;
-                    yi += anchor.y * height;
-                    xi /= width;
-                    yi /= height;
+                    var xi = output0[a, 4 + (2 * i) + 0]/width+anchor.x;
+                    var yi = output0[a, 4 + (2 * i) + 1]/height+anchor.y;
                     keyPoints[i] = new Vector2(xi, yi);
                 }
                 var vec = keyPoints[0] - keyPoints[1];

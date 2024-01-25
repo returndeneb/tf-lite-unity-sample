@@ -16,7 +16,6 @@ namespace Holistic
 
         public enum Dimension
         {
-            Two,
             Three,
         }
 
@@ -33,7 +32,7 @@ namespace Holistic
 
         private Dimension Dim { get; }
         private Vector2 PalmShift { get; } = new (0f, 0f);
-        private Vector2 PalmScale { get; } = new (1f, 1f);
+        private Vector2 PalmScale { get; } = new (2.8f, 2.8f);
         public Matrix4x4 CropMatrix => cropMatrix;
 
         public HandMesh(string modelPath) : base(modelPath, Accelerator.NONE)
@@ -41,7 +40,6 @@ namespace Holistic
             var out0Info = interpreter.GetOutputTensorInfo(0);
             Dim = out0Info.shape[1] switch
             {
-                JointCount * 2 => Dimension.Two,
                 JointCount * 3 => Dimension.Three,
                 _ => throw new System.NotSupportedException()
             };
@@ -65,7 +63,7 @@ namespace Holistic
             {
                 rect = palm.rect,
                 rotationDegree = palm.rotation,
-                // shift = PalmShift,
+                shift = PalmShift,
                 scale = PalmScale,
             });
 
@@ -88,7 +86,7 @@ namespace Holistic
             {
                 rect = palm.rect,
                 rotationDegree = palm.rotation,
-                // shift = PalmShift,
+                shift = PalmShift,
                 scale = PalmScale,
             });
 
@@ -113,54 +111,42 @@ namespace Holistic
         public Result GetResult()
         {
             // Normalize 0 ~ 255 => 0.0 ~ 1.0
-            const float scale = 1f / 255f;
+            
             var mtx = cropMatrix.inverse;
-
+            
             result.score = output1[0];
-            if (Dim == Dimension.Two)
+            
+            for (var i = 0; i < JointCount; i++)
             {
-                for (var i = 0; i < JointCount; i++)
-                {
-                    result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                        output0[i * 2] * scale,
-                        1f - output0[i * 2 + 1] * scale,
-                        0
-                    ));
-                }
+                result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
+                    output0[i * 3] / 255f,
+                    1f - output0[i * 3 + 1] / 255f,
+                    output0[i * 3 + 2] / 255f
+                ));
             }
-            else
-            {
-                for (var i = 0; i < JointCount; i++)
-                {
-                    result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                        output0[i * 3] * scale,
-                        1f - output0[i * 3 + 1] * scale,
-                        output0[i * 3 + 2] * scale
-                    ));
-                }
-            }
+            
             return result;
         }
         public static HandDetect.Result LandmarkToDetection(Result landmark)
                 {
-                    const int start = 9; // 
-                    const int end = 0; // 
+                    const int start = 9; 
+                    const int end = 0; 
         
                     var landmarkKeyPoints = landmark.keyPoints;
-                    
-                    for (var i = 0; i < landmarkKeyPoints.Length; i++)
+                    int[] selectedIndices = { 0, 1, 5, 9, 13, 17 };
+                    for  (var i =0; i<landmarkKeyPoints.Length;i++)
                     {
                         landmarkKeyPoints[i].y = 1f - landmarkKeyPoints[i].y;
                     }
         
-                    var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
+                    var rect = RectExtension.GetBoundingBox(landmarkKeyPoints,selectedIndices);
                     var center = rect.center;
 
-                    var size = Mathf.Min(rect.width, rect.height)*4.8f;
+                    var size = Mathf.Min(rect.width, rect.height)*1.3f;
                     
                     var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
                     var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
-                    const float shifting = 0.2f / 2.8f;
+                    const float shifting = 0.1f / 2.8f;
 
                     return new HandDetect.Result()
                     {
@@ -170,11 +156,5 @@ namespace Holistic
                         rotation = rot
                     };
                 }
-        // private static float GetAngle(HandDetect.Result detection)
-        // {
-        //     // Rotation based on Center of wrist - Middle finger
-        //     var vec = detection.keyPoints[0] - detection.keyPoints[2];
-        //     return -90f - Mathf.Atan2(vec.y, vec.x)* Mathf.Rad2Deg;
-        // }
     }
 }
