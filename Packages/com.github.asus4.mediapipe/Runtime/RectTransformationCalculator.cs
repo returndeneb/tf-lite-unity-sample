@@ -28,12 +28,10 @@ namespace TensorFlowLite
             var rotation = Quaternion.Euler(0, 0, options.rotationDegree);
             var size = Vector2.Scale(options.rect.size, options.scale); // elementwise product
             // Calc center position
-            // Debug.Log(options.rect.center);
             var center = options.rect.center - new Vector2(0.5f, 0.5f);
 
             center = rotation * center;
-            center /= size;
-            center += options.shift;
+            center = center/size+options.shift;
 
             var trs = Matrix4x4.TRS(
                 new Vector3(-center.x, -center.y, 0),

@@ -86,7 +86,7 @@ namespace TensorFlowLite
             cube = new MeshBuffer(CreateMesh(PrimitiveType.Cube), 512);
             quad = new MeshBuffer(CreateMesh(PrimitiveType.Quad), 512);
 
-            this.camera = camera ?? Camera.main;
+            this.camera = camera ? camera : Camera.main;
             this.layer = layer;
 
             color = Color.green;

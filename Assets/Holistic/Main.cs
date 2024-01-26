@@ -178,10 +178,11 @@ namespace Holistic
             var landmarks = poseMeshResult.viewportLandmarks;
             for (var i = 0; i < landmarks.Length; i++)
             {
-                var p = Camera.main.ViewportToWorldPoint(landmarks[i]);
+                // var p = Camera.main.ViewportToWorldPoint(landmarks[i]);
+                var p = MathTF.Lerp(imgSize[0],imgSize[2],landmarks[i]);
                 viewportLandmarks[i] = new Vector4(p.x, p.y, p.z, landmarks[i].w);
                 if (viewportLandmarks[i].w > visibilityThreshold) 
-                    draw.Cube(viewportLandmarks[i], 0.2f);
+                    draw.Point(viewportLandmarks[i], 0.2f);
             }
             
             var connections = PoseMesh.Connections;
