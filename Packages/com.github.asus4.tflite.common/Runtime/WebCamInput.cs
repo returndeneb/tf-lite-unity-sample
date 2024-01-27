@@ -36,11 +36,13 @@ public sealed class WebCamInput : MonoBehaviour
             deviceIndex = i;
             break;
         }
+        
         StartCamera(device);
     }
 
     private void OnDestroy()
     {
+        
         StopCamera();
         resizer?.Dispose();
     }

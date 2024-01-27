@@ -10,25 +10,11 @@ namespace Holistic
 {
     public sealed class PoseDetect : ImageInterpreter<float>
     {
-        [System.Serializable]
-        public class Options
-        {
-            [FilePopup("*.tflite")]
-            public string modelPath = string.Empty;
-            public AspectMode aspectMode = AspectMode.Fit;
-
-            [Range(0, 1)]
-            public float scoreThreshold = 0.5f;
-            public bool useNonMaxSuppression = false;
-            [Range(0, 1)]
-            public float iouThreshold = 0.3f;
-        }
-
         public class Result : System.IComparable<Result>
         {
             public float score;
             public Rect rect;
-            public Vector2[] keypoints;
+            public Vector2[] keyPoints;
 
             public static Result Negative => new Result() { score = -1, };
 
@@ -38,17 +24,17 @@ namespace Holistic
             }
         }
 
-        private const int MAX_POSE_NUM = 100;
-        private const int ANCHOR_LENGTH = 2254;
-        private readonly int keypointsCount;
+        private const int MaxPoseNum = 100;
+        private const int AnchorLength = 2254;
+        private readonly int keyPointsCount;
 
         // regressors / points
         // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
         // 4 - 11 are 4 keypoints x and y coordinates: x0,y0,x1,y1,x2,y2,x3,y3
-        private readonly float[,] output0 = new float[ANCHOR_LENGTH, 12];
+        private readonly float[,] output0 = new float[AnchorLength, 12];
 
         // classificators / scores
-        private readonly float[] output1 = new float[ANCHOR_LENGTH];
+        private readonly float[] output1 = new float[AnchorLength];
 
         private readonly SsdAnchor[] anchors;
         private readonly SortedSet<Result> results = new SortedSet<Result>();
@@ -81,12 +67,12 @@ namespace Holistic
             };
 
             anchors = SsdAnchorsCalculator.Generate(anchorOptions);
-            Assert.AreEqual(anchors.Length, ANCHOR_LENGTH,
-                $"Anchors count must be {ANCHOR_LENGTH}, but was {anchors.Length}");
+            Assert.AreEqual(anchors.Length, AnchorLength,
+                $"Anchors count must be {AnchorLength}, but was {anchors.Length}");
 
             // Get Keypoint Mode
             var odim0 = interpreter.GetOutputTensorInfo(0).shape;
-            keypointsCount = (odim0[2] - 4) / 2;
+            keyPointsCount = (odim0[2] - 4) / 2;
         }
 
         public void Invoke(Texture inputTex)
@@ -144,8 +130,8 @@ namespace Holistic
                 w /= width;
                 h /= height;
 
-                var keypoints = new Vector2[keypointsCount];
-                for (var j = 0; j < keypointsCount; j++)
+                var keypoints = new Vector2[keyPointsCount];
+                for (var j = 0; j < keyPointsCount; j++)
                 {
                     var lx = output0[i, 4 + (2 * j) + 0];
                     var ly = output0[i, 4 + (2 * j) + 1];
@@ -160,7 +146,7 @@ namespace Holistic
                 {
                     score = score,
                     rect = new Rect(cx - w * 0.5f, cy - h * 0.5f, w, h),
-                    keypoints = keypoints,
+                    keyPoints = keypoints,
                 });
             }
 
@@ -188,7 +174,7 @@ namespace Holistic
                 if (!ignoreCandidate)
                 {
                     nonMaxSupressionCache.Add(original);
-                    if (nonMaxSupressionCache.Count >= MAX_POSE_NUM)
+                    if (nonMaxSupressionCache.Count >= MaxPoseNum)
                     {
                         break;
                     }

@@ -70,7 +70,7 @@ namespace TensorFlowLite
             set => mpb.SetColor(_Color, value);
         }
 
-        public PrimitiveDraw(Camera camera = null, int layer = 0)
+        public PrimitiveDraw(int layer = 0)
         {
             material = new Material(Shader.Find("Hidden/PrimitiveDraw"));
             material.hideFlags = HideFlags.HideAndDontSave;
@@ -86,7 +86,7 @@ namespace TensorFlowLite
             cube = new MeshBuffer(CreateMesh(PrimitiveType.Cube), 512);
             quad = new MeshBuffer(CreateMesh(PrimitiveType.Quad), 512);
 
-            this.camera = camera ? camera : Camera.main;
+            camera = Camera.main;
             this.layer = layer;
 
             color = Color.green;

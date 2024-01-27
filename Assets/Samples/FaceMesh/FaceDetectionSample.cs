@@ -20,7 +20,7 @@ namespace Samples.FaceMesh
         {
             print("testtssetss");
             faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
-            draw = new PrimitiveDraw(Camera.main, gameObject.layer);
+            draw = new PrimitiveDraw( gameObject.layer);
             
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
             

@@ -34,16 +34,16 @@ namespace Holistic
         private Vector4[] viewportLandmarks;
         private void Start()
         {
-            faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
-            handDetect = new HandDetect("mediapipe/palm_detection_builtin_256_float16_quant.tflite");
-            poseDetect = new PoseDetect("mediapipe/pose_detection.tflite");
+            faceDetect = new FaceDetect("face_detection.tflite");
+            handDetect = new HandDetect("palm_detection.tflite");
+            poseDetect = new PoseDetect("pose_detection.tflite");
             
-            faceMesh = new FaceMesh("mediapipe/face_landmark.tflite");
-            handMesh = new HandMesh("mediapipe/hand_landmark.tflite");
-            handMesh2 = new HandMesh("mediapipe/hand_landmark.tflite");
-            poseMesh = new PoseMesh("mediapipe/pose_landmark_lite.tflite");
+            faceMesh = new FaceMesh("face_landmark.tflite");
+            handMesh = new HandMesh("hand_landmark.tflite");
+            handMesh2 = new HandMesh("hand_landmark.tflite");
+            poseMesh = new PoseMesh("pose_landmark_lite.tflite");
             
-            draw = new PrimitiveDraw(Camera.main, gameObject.layer);
+            draw = new PrimitiveDraw();
             viewportLandmarks = new Vector4[PoseMesh.LandmarkCount];
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
             
@@ -126,11 +126,11 @@ namespace Holistic
         private void DetectPose(Texture texture)
         {
             if (texture == null) return;
-            if (poseDetectResult?.keypoints == null)
+            if (poseDetectResult?.keyPoints == null)
             {
                 poseDetect.Invoke(texture);
                 poseDetectResult = poseDetect.GetResults();
-                if (poseDetectResult?.keypoints == null) return;
+                if (poseDetectResult?.keyPoints == null) return;
             }
             poseMeshResult = poseMesh.Invoke(texture, poseDetectResult);
             poseDetectResult = poseMeshResult.score < 0.9f?null:PoseMesh.LandmarkToDetection(poseMeshResult);
@@ -181,8 +181,8 @@ namespace Holistic
                 // var p = Camera.main.ViewportToWorldPoint(landmarks[i]);
                 var p = MathTF.Lerp(imgSize[0],imgSize[2],landmarks[i]);
                 viewportLandmarks[i] = new Vector4(p.x, p.y, p.z, landmarks[i].w);
-                if (viewportLandmarks[i].w > visibilityThreshold) 
-                    draw.Point(viewportLandmarks[i], 0.2f);
+                if (landmarks[i].w > visibilityThreshold) 
+                    draw.Point(p, 0.2f);
             }
             
             var connections = PoseMesh.Connections;

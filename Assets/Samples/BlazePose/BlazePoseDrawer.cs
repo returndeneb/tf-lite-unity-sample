@@ -14,7 +14,7 @@ namespace TensorFlowLite
 
         public BlazePoseDrawer(Camera camera, int layer, RectTransform container)
         {
-            draw = new PrimitiveDraw(camera, layer);
+            draw = new PrimitiveDraw( layer);
             this.container = container;
             this.camera = camera;
             viewportLandmarks = new Vector4[PoseMesh.LandmarkCount];

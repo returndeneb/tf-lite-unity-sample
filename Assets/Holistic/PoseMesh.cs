@@ -204,8 +204,8 @@ namespace Holistic
 
         private static Matrix4x4 CalcCropMatrix(ref PoseDetect.Result pose, ref TextureResizer.ResizeOptions resizeOptions)
         {
-            var rotation = CalcRotationDegree(pose.keypoints[0], pose.keypoints[1]);
-            var rect = AlignmentPointsToRect(pose.keypoints[0], pose.keypoints[1]);
+            var rotation = CalcRotationDegree(pose.keyPoints[0], pose.keyPoints[1]);
+            var rect = AlignmentPointsToRect(pose.keyPoints[0], pose.keyPoints[1]);
             return RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = rect,
@@ -227,7 +227,7 @@ namespace Holistic
             return new PoseDetect.Result()
             {
                 score = result.score,
-                keypoints = new[] { hip, aboveHead }
+                keyPoints = new[] { hip, aboveHead }
             };
         }
     }

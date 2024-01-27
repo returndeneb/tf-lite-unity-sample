@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Holistic
 {
-    public class FaceDetect : ImageInterpreter<float>
+    public sealed class FaceDetect : ImageInterpreter<float>
     {
         public class Result
         {
@@ -57,7 +57,7 @@ namespace Holistic
 
             anchors = SsdAnchorsCalculator.Generate(options);
         }
-        public virtual void Invoke(Texture inputTex)
+        public void Invoke(Texture inputTex)
         {
             ToTensor(inputTex, inputTensor);
             
