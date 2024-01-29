@@ -11,37 +11,40 @@ namespace Holistic
         [SerializeField]
         private RawImage image;
         
-        private FaceDetect faceDetect;
-        private HandDetect handDetect;
         private PoseDetect poseDetect;
+        private PoseMesh poseMesh;
+        private PoseDetect.Result poseDetectResult;
+        private PoseMesh.Result poseMeshResult;
         
+        private FaceDetect faceDetect;
         private FaceMesh faceMesh;
+        private IrisMesh irisMesh;
+        private FaceDetect.Result faceDetectResult;
+        private FaceMesh.Result faceMeshResult;
+        private IrisMesh.Result irisMeshResult;
+        
+        private HandDetect handDetect;
         private HandMesh handMesh;
         private HandMesh handMesh2;
-        private PoseMesh poseMesh;
-        
-        private FaceDetect.Result faceDetectResult;
         private List<HandDetect.Result> handDetectResults;
-        private PoseDetect.Result poseDetectResult;
-        
-        private FaceMesh.Result faceMeshResult;
         private HandMesh.Result handMeshResult;
         private HandMesh.Result handMeshResult2;
-        private PoseMesh.Result poseMeshResult;
         
         private PrimitiveDraw draw;
         private readonly Vector3[] imgSize = new Vector3[4];
         private Vector4[] viewportLandmarks;
         private void Start()
         {
-            faceDetect = new FaceDetect("face_detection.tflite");
-            handDetect = new HandDetect("palm_detection.tflite");
             poseDetect = new PoseDetect("pose_detection.tflite");
-            
+            poseMesh = new PoseMesh("pose_landmark_lite.tflite");
+            faceDetect = new FaceDetect("face_detection.tflite");
             faceMesh = new FaceMesh("face_landmark.tflite");
+            irisMesh = new IrisMesh("iris_landmark.tflite");
+            handDetect = new HandDetect("palm_detection.tflite");
             handMesh = new HandMesh("hand_landmark.tflite");
             handMesh2 = new HandMesh("hand_landmark.tflite");
-            poseMesh = new PoseMesh("pose_landmark_lite.tflite");
+            
+            
             
             draw = new PrimitiveDraw();
             viewportLandmarks = new Vector4[PoseMesh.LandmarkCount];
@@ -67,16 +70,16 @@ namespace Holistic
         {
             image.texture = texture;
             DetectFace(texture);
-            DetectHand(texture);
-            DetectPose(texture);
+            // DetectHand(texture);
+            // DetectPose(texture);
         }
         private void Update()
         {
             image.rectTransform.GetWorldCorners(imgSize);
             DrawFace();
-            DrawHand();
-            DrawPose();
-            draw.Apply();
+            // DrawHand();
+            // DrawPose();
+            
         }
         private void DetectFace(Texture texture)
         {
@@ -90,6 +93,8 @@ namespace Holistic
             faceMesh.Invoke(texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
             faceDetectResult = faceMeshResult.score < 0f ? null : FaceMesh.LandmarkToDetection(faceMeshResult);
+            irisMesh.Invoke(texture, faceMeshResult);
+            irisMeshResult = irisMesh.GetResult();
         }
         private void DetectHand(Texture texture)
         {
@@ -139,14 +144,36 @@ namespace Holistic
         private void DrawFace()
         {
             if (faceMeshResult == null) return;
+
             for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
             {
                 var kp = faceMeshResult.keyPoints[i];
-                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp,true);
+                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, true);
                 p.z = faceMeshResult.keyPoints[i].z * (imgSize[2].x - imgSize[0].x) / 2;
+
+                if (i == 33 || i == 133 || i == 362 || i == 263)
+                {
+                    draw.color = Color.red;
+                }
+                else
+                {
+                    draw.color = Color.green;
+                }
                 draw.Point(p);
+                draw.Apply();
+            }
+
+            for (var i = 0; i < irisMeshResult.keyPoints.Length; i++)
+            {
+                var kp = irisMeshResult.keyPoints[i];
+                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, false);
+                
+                draw.color = Color.yellow;
+                draw.Point(p);
+                draw.Apply();
             }
         }
+
         private void DrawHand()
         {
             if (handMeshResult != null)
@@ -179,7 +206,7 @@ namespace Holistic
             for (var i = 0; i < landmarks.Length; i++)
             {
                 // var p = Camera.main.ViewportToWorldPoint(landmarks[i]);
-                var p = MathTF.Lerp(imgSize[0],imgSize[2],landmarks[i]);
+                var p = MathTF.Lerp(imgSize[0],imgSize[2],landmarks[i],true);
                 viewportLandmarks[i] = new Vector4(p.x, p.y, p.z, landmarks[i].w);
                 if (landmarks[i].w > visibilityThreshold) 
                     draw.Point(p, 0.2f);

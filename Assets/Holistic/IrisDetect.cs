@@ -16,13 +16,14 @@ namespace Holistic
             
         }
         
-        private Matrix4x4 cropMatrix;
-        private Vector2 FaceScale { get; set; } = new(1.6f, 1.6f);
+        private Matrix4x4 cropMatrix_left;
+        private Matrix4x4 cropMatrix_right;
+        private Vector2 EyeScale { get; set; } = new(1.1f, 1.1f);
         private readonly Result result;
-        private const int KeypointCount = 468;
-        private readonly float[,] output0 = new float[KeypointCount, 3]; // key points
-        private readonly float[] output1 = new float[1]; // score
-        public IrisMesh(string modelPath, InterpreterOptions options) : base(modelPath, options)
+        private const int KeypointCount = 5;
+        private readonly float[,] output0 = new float[1,213]; // ???
+        private readonly float[,] output1 = new float[1,15]; // key points
+        public IrisMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
             result = new Result()
             {
@@ -31,18 +32,26 @@ namespace Holistic
             };
         }
 
-        public void Invoke(Texture inputTex, FaceDetect.Result face)
+        public void Invoke(Texture inputTex, FaceMesh.Result face)
         {
-            cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options
+            var leftEye = new List<Vector2>{face.keyPoints[33], face.keyPoints[133]};
+            var leftSize = Mathf.Max(leftEye[0].x - leftEye[1].x, leftEye[0].y - leftEye[1].y);
+            var leftCenter = (leftEye[0] + leftEye[1]) / 2f;
+            var leftRect = new Rect(leftCenter.x - leftSize / 2f, leftCenter.y - leftSize / 2f, leftSize, leftSize);
+            var rightEye = new List<Vector3>{face.keyPoints[362], face.keyPoints[264]};
+           
+            cropMatrix_left = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options
             {
-                rect = face.rect,
-                rotationDegree = face.rotation,
+                rect = leftRect,
+                rotationDegree = 0f,
                 // shift = FaceShift,
-                scale = FaceScale,
+                scale = EyeScale,
             });
+        
+        
             var rt = resizer.Resize(
                 inputTex, resizeOptions.width, resizeOptions.height,
-                cropMatrix,
+                cropMatrix_left,
                 TextureResizer.GetTextureSt(inputTex, resizeOptions));
             
             ToTensor(rt, inputTensor, false);
@@ -55,16 +64,16 @@ namespace Holistic
         
         public Result GetResult()
         {
-            const float scale = 1f / 192f;
-            var mtx = cropMatrix.inverse;
+            const float scale = 1/64f ;
+            var mtx = cropMatrix_left.inverse;
 
-            result.score = output1[0];
+            result.score = output1[0,0];
             for (var i = 0; i < KeypointCount; i++)
             {
                 result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                    output0[i, 0] * scale,
-                    1-output0[i, 1] * scale,
-                    output0[i, 2] * scale
+                    output0[0,i*3] * scale,
+                    1-output0[0,i*3+1] * scale,
+                    output0[0,i*3+2] * scale
                 ));
             }
             return result;

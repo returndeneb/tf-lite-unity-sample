@@ -89,7 +89,7 @@ namespace TensorFlowLite
             camera = Camera.main;
             this.layer = layer;
 
-            color = Color.green;
+            // color = Color.green;
         }
 
         public void Dispose()
