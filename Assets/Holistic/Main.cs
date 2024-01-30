@@ -68,7 +68,7 @@ namespace Holistic
         }
         private void OnTextureUpdate(Texture texture)
         {
-            image.texture = poseMesh.InputTex;
+            image.texture = texture;
             DetectFace(texture);
             DetectPose(texture);
             

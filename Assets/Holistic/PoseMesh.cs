@@ -209,7 +209,7 @@ namespace Holistic
             return RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = rect,
-                rotationDegree = rotation,
+                rotationDegree = rotation*0+180f,
                 shift = new Vector2(0, 0),
                 scale = new Vector2(1.5f, 1.5f),
             });
