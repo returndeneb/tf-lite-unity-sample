@@ -115,7 +115,7 @@ public abstract class ImageInterpreter<T> : System.IDisposable
         tex2Tensor.ToTensor(tex, inputs);
     }
 
-    protected void ToTensor(RenderTexture inputTex, float[,,] inputs, bool resize)
+    protected void ToTensor(RenderTexture inputTex, float[,,] inputs, bool resize=true)
     {
         var tex = resize ? resizer.Resize(inputTex, resizeOptions) : inputTex;
         tex2Tensor.ToTensor(tex, inputs);

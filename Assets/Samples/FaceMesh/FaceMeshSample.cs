@@ -34,7 +34,7 @@ public sealed class FaceMeshSample : MonoBehaviour
         faceDetect = new FaceDetect("mediapipe/face_detection_back.tflite");
         faceMesh = new FaceMesh("mediapipe/face_landmark.tflite");
         draw = new PrimitiveDraw( gameObject.layer);
-        cameraView.material = faceDetect.TransformMat;
+        // cameraView.material = faceDetect.TransformMat;
         {
             var go = new GameObject("Face");
             go.transform.SetParent(transform);

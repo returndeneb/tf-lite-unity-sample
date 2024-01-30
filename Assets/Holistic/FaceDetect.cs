@@ -59,6 +59,8 @@ namespace Holistic
         }
         public void Invoke(Texture inputTex)
         {
+            
+            
             ToTensor(inputTex, inputTensor);
             
             interpreter.SetInputTensorData(0, inputTensor);

@@ -82,7 +82,7 @@ namespace Samples.HandTracking
         private void Invoke(Texture texture)
         {
             palmDetect.Invoke(texture);
-            cameraView.material = palmDetect.TransformMat;
+            // cameraView.material = palmDetect.TransformMat;
             cameraView.rectTransform.GetWorldCorners(rtCorners);
 
             palmResults = palmDetect.GetResults(0.7f, 0.3f);
@@ -100,7 +100,7 @@ namespace Samples.HandTracking
         private async UniTask<bool> InvokeAsync(Texture texture)
         {
             palmResults = await palmDetect.InvokeAsync(texture, cancellationToken);
-            cameraView.material = palmDetect.TransformMat;
+            // cameraView.material = palmDetect.TransformMat;
             cameraView.rectTransform.GetWorldCorners(rtCorners);
 
             if (palmResults.Count <= 0) return false;

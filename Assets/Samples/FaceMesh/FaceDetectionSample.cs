@@ -24,7 +24,7 @@ namespace Samples.FaceMesh
             
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
             
-            cameraView.material = faceDetect.TransformMat;
+            // cameraView.material = faceDetect.TransformMat;
             cameraView.rectTransform.GetWorldCorners(rtCorners);
         }
 

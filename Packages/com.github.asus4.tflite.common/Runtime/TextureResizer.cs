@@ -42,7 +42,7 @@ public class TextureResizer : IDisposable
     }
 
 
-    public RenderTexture Resize(Texture texture, ResizeOptions options) // 카메라 이미지를 줄일때만 쓰임
+    public RenderTexture Resize(Texture texture, ResizeOptions options) 
     {
         VertexTransform = Matrix4x4.identity; // No rotation
         UVRect = GetTextureSt(texture, options);
