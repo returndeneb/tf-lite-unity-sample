@@ -177,15 +177,15 @@ namespace Holistic
 
         private static Rect AlignmentPointsToRect(in Vector2 center, in Vector2 scale)
         {
-            float boxSize = Mathf.Sqrt(
-                (scale.x - center.x) * (scale.x - center.x)
-                + (scale.y - center.y) * (scale.y - center.y)
-            ) * 2f;
+            // var boxSize = Mathf.Sqrt(
+            //     (scale.x - center.x) * (scale.x - center.x)
+            //     + (scale.y - center.y) * (scale.y - center.y)
+            // ) * 2f;
             return new Rect(
-                center.x - boxSize / 2,
-                center.y - boxSize / 2,
-                boxSize,
-                boxSize);
+                center.x - 0.5f,
+                 0.5f,
+                1f,
+                1f);
         }
 
         private static float CalcRotationDegree(in Vector2 a, in Vector2 b)
@@ -205,7 +205,7 @@ namespace Holistic
         private static Matrix4x4 CalcCropMatrix(ref PoseDetect.Result pose, ref TextureResizer.ResizeOptions resizeOptions)
         {
             var rotation = CalcRotationDegree(pose.keyPoints[0], pose.keyPoints[1]);
-            var rect = AlignmentPointsToRect(pose.keyPoints[0], pose.keyPoints[1]);
+            var rect = AlignmentPointsToRect(new Vector2(pose.keyPoints[0].x,1f), pose.keyPoints[1]);
             return RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options()
             {
                 rect = rect,

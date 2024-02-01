@@ -12,6 +12,7 @@ namespace Holistic
         {
             public float score;
             public Vector3[] keyPoints;
+            public float handness;
         }
 
         public enum Dimension
@@ -124,7 +125,8 @@ namespace Holistic
                     output0[i * 3 + 2] / 255f
                 ));
             }
-            
+
+            result.handness = output2[0];
             return result;
         }
         public static HandDetect.Result LandmarkToDetection(Result landmark)

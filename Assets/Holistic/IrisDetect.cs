@@ -31,12 +31,12 @@ namespace Holistic
             };
         }
 
-        public void Invoke(Texture inputTex, FaceMesh.Result face,bool rl)
+        public void Invoke(Texture inputTex, FaceMesh.Result face,bool left)
         {
-            var leftEye = rl? new List<Vector2>{face.keyPoints[33], face.keyPoints[133]}: new List<Vector2>{face.keyPoints[362], face.keyPoints[263]};
-            var leftSize = Mathf.Max(leftEye[0].x - leftEye[1].x, leftEye[0].y - leftEye[1].y);
-            var leftCenter = (leftEye[0] + leftEye[1]) / 2f;
-            cropRect = new Rect(leftCenter.x - leftSize / 2f, leftCenter.y - leftSize / 2f, leftSize, leftSize);
+            var eye = left? new List<Vector2>{face.keyPoints[33], face.keyPoints[133]}: new List<Vector2>{face.keyPoints[362], face.keyPoints[263]};
+            var size = Mathf.Max(eye[0].x - eye[1].x, eye[0].y - eye[1].y);
+            var center = (eye[0] + eye[1]) / 2f;
+            cropRect = new Rect(center.x - size / 2f, center.y - size / 2f, size, size);
                 
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options
             {

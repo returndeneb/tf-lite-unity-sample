@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using TensorFlowLite;
 using UnityEngine;
@@ -18,12 +19,12 @@ namespace Holistic
         
         private FaceDetect faceDetect;
         private FaceMesh faceMesh;
-        private IrisMesh irisMesh;
-        private IrisMesh irisMesh2;
+        private IrisMesh irisLeft;
+        private IrisMesh irisRight;
         private FaceDetect.Result faceDetectResult;
         private FaceMesh.Result faceMeshResult;
-        private IrisMesh.Result irisMeshResult;
-        private IrisMesh.Result irisMeshResult2;
+        private IrisMesh.Result irisLeftResult;
+        private IrisMesh.Result irisRightResult;
         
         private HandDetect handDetect;
         private HandMesh handMesh;
@@ -41,8 +42,8 @@ namespace Holistic
             poseMesh = new PoseMesh("pose_landmark_lite.tflite");
             faceDetect = new FaceDetect("face_detection.tflite");
             faceMesh = new FaceMesh("face_landmark.tflite");
-            irisMesh = new IrisMesh("iris_landmark.tflite");
-            irisMesh2 = new IrisMesh("iris_landmark.tflite");
+            irisLeft = new IrisMesh("iris_landmark.tflite");
+            irisRight = new IrisMesh("iris_landmark.tflite");
             handDetect = new HandDetect("palm_detection.tflite");
             handMesh = new HandMesh("hand_landmark.tflite");
             handMesh2 = new HandMesh("hand_landmark.tflite");
@@ -59,8 +60,8 @@ namespace Holistic
             poseMesh?.Dispose();
             faceDetect?.Dispose();
             faceMesh?.Dispose();
-            irisMesh?.Dispose();
-            irisMesh2?.Dispose();
+            irisLeft?.Dispose();
+            irisRight?.Dispose();
             handDetect?.Dispose();
             handMesh?.Dispose();
             handMesh2?.Dispose();
@@ -71,15 +72,14 @@ namespace Holistic
             image.texture = texture;
             DetectFace(texture);
             DetectPose(texture);
-            
-            // DetectHand(texture);
+            DetectHand(texture);
         }
         private void Update()
         {
             image.rectTransform.GetWorldCorners(imgSize);
             DrawFace();
             DrawPose();
-            // DrawHand();
+            DrawHand();
         }
         private void DetectFace(Texture texture)
         {
@@ -94,11 +94,11 @@ namespace Holistic
             faceMeshResult = faceMesh.GetResult();
             faceDetectResult = faceMeshResult.score < 0f ? null : FaceMesh.LandmarkToDetection(faceMeshResult);
             
-            irisMesh.Invoke(texture, faceMeshResult,true);
-            irisMeshResult = irisMesh.GetResult();
+            irisLeft.Invoke(texture, faceMeshResult,true);
+            irisLeftResult = irisLeft.GetResult();
             
-            irisMesh2.Invoke(texture,faceMeshResult,false);
-            irisMeshResult2 = irisMesh2.GetResult();
+            irisRight.Invoke(texture,faceMeshResult,false);
+            irisRightResult = irisRight.GetResult();
         }
         private void DetectPose(Texture texture)
         {
@@ -110,21 +110,19 @@ namespace Holistic
                 if (poseDetectResult?.keyPoints == null) return;
             }
             poseMeshResult = poseMesh.Invoke(texture, poseDetectResult);
-            poseDetectResult = poseMeshResult.score < 0.9f?null:PoseMesh.LandmarkToDetection(poseMeshResult);
+            poseDetectResult = poseMeshResult.score < 0.8f?null:PoseMesh.LandmarkToDetection(poseMeshResult);
         }
         private void DetectHand(Texture texture)
         {
             if (texture == null) return;
-            if (handDetectResults is not { Count: > 0 } )
+            if (handDetectResults is not { Count: > 1 } )
             {
-                
                 handDetect.Invoke(texture);
                 handDetectResults = handDetect.GetResults();
                 if (handDetectResults.Count <= 0) return;
             }
             handMesh.Invoke(texture, handDetectResults[0]);
             handMeshResult = handMesh.GetResult();
-            
             
             if (handMeshResult.score < 0.9f)
             {
@@ -143,8 +141,6 @@ namespace Holistic
             }
             handDetectResults[1] = HandMesh.LandmarkToDetection(handMeshResult2);
         }
-
-        
             
         private void DrawFace()
         {
@@ -160,7 +156,7 @@ namespace Holistic
                 draw.Point(p);
                 draw.Apply();
             }
-            foreach (var kp in irisMeshResult.keyPoints)
+            foreach (var kp in irisLeftResult.keyPoints)
             {
                 var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, false);
                 
@@ -169,7 +165,7 @@ namespace Holistic
                 draw.Apply();
             }
             
-            foreach (var kp in irisMeshResult2.keyPoints)
+            foreach (var kp in irisRightResult.keyPoints)
             {
                 var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, false);
                 
@@ -183,28 +179,28 @@ namespace Holistic
         {
             if (handMeshResult != null)
             {
-                
                 for (var i = 0; i < HandMesh.JointCount; i++)
                 {
                     var kp = handMeshResult.keyPoints[i];
                     var p1 = MathTF.Lerp(imgSize[0], imgSize[2], kp,true);
                     p1.z += handMeshResult.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
-                    
+                    draw.color = handMeshResult.handness > 0.5 ? Color.black : Color.white;
                     draw.Point(p1,0.1f);
+                    draw.Apply();
                 }
             }
-            
             if (handMeshResult2 == null) return;
             
             for (var i = 0; i < HandMesh.JointCount; i++)
             {
                 var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult2.keyPoints[i],true);
                 p1.z += handMeshResult2.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
-                
+                draw.color = handMeshResult2.handness > 0.5 ? Color.black : Color.white;
                 draw.Point(p1,0.1f);
+                draw.Apply();
             }
         }
-        private void DrawPose(float visibilityThreshold=0.5f)
+        private void DrawPose(float visibilityThreshold=4f)
         {
             if (poseMeshResult == null) return;
             var landmarks = poseMeshResult.viewportLandmarks;
@@ -222,7 +218,8 @@ namespace Holistic
             {
                 var a = viewportLandmarks[connections[i]];
                 var b = viewportLandmarks[connections[i + 1]];
-                if (a.w > visibilityThreshold || b.w > visibilityThreshold)
+               
+                if (a.w > visibilityThreshold && b.w > visibilityThreshold)
                 {
                     draw.Line3D(a, b, 0.05f);
                 }

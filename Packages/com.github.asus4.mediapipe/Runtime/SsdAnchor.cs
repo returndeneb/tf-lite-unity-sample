@@ -30,9 +30,7 @@ namespace TensorFlowLite
         public float y; // center
         public float width;
         public float height;
-
-
-
+        
         public override int GetHashCode()
         {
             return x.GetHashCode() ^ (y.GetHashCode() << 2) ^ (width.GetHashCode() >> 2) ^ (height.GetHashCode() >> 1);
