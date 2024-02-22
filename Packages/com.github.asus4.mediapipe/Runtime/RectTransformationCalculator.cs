@@ -24,7 +24,6 @@ namespace TensorFlowLite
 
         public static Matrix4x4 CalcMatrix(Options options)
         {
-            
             var rotation = Quaternion.Euler(0, 0, options.rotationDegree);
             var size = Vector2.Scale(options.rect.size, options.scale); // elementwise product
             // Calc center position

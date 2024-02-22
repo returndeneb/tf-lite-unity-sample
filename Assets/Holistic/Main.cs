@@ -88,23 +88,20 @@ namespace Holistic
             if (texture == null) return;
             if (faceDetectResult == null)
             {
-            faceDetect.Invoke(texture);
-            faceDetectResult = faceDetect.GetResults().FirstOrDefault();
-            if (faceDetectResult == null) return;
+                faceDetect.Invoke(texture);
+                faceDetectResult = faceDetect.GetResults().FirstOrDefault();
+                if (faceDetectResult == null) return;
             }
-
-        // Debug.Log(faceDetectResult.rect.center);
             faceMesh.Invoke(texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
-            var rect = RectExtension.GetBoundingBox(faceMeshResult.keyPoints);
-            // Debug.Log(rect.center);
+            
             faceDetectResult = faceMeshResult.score < 0.5f ? null : FaceMesh.LandmarkToDetection(faceMeshResult);
            
-            // irisLeft.Invoke(texture, faceMeshResult,true);
-            // irisLeftResult = irisLeft.GetResult();
-            //
-            // irisRight.Invoke(texture,faceMeshResult,false);
-            // irisRightResult = irisRight.GetResult();
+            irisLeft.Invoke(texture, faceMeshResult,true);
+            irisLeftResult = irisLeft.GetResult();
+            
+            irisRight.Invoke(texture,faceMeshResult,false);
+            irisRightResult = irisRight.GetResult();
         }
         private void DetectPose(Texture texture)
         {
@@ -149,9 +146,12 @@ namespace Holistic
         }
             
         private void DrawFace()
-        {
+        {   
+            if (faceDetectResult == null) return;
+            var rect2 = faceDetectResult.rect;
+            draw.Rect(MathTF.Lerp(imgSize[0], imgSize[2], rect2,false));
+            
             if (faceMeshResult == null) return;
-
             for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
             {
                 var kp = faceMeshResult.keyPoints[i];
@@ -162,25 +162,23 @@ namespace Holistic
                 draw.Point(p);
                 draw.Apply();
             }
-            if (faceDetectResult == null) return;
-            var rect2 = faceDetectResult.rect;
-            draw.Rect(MathTF.Lerp(imgSize[0], imgSize[2], rect2,false));
-            // foreach (var kp in irisLeftResult.keyPoints)
-            // {
-            //     var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, true);
-            //     // p.z = kp.z * (imgSize[2].x - imgSize[0].x) / 2;
-            //     draw.color = Color.yellow;
-            //     draw.Point(p);
-            //     draw.Apply();
-            // }
-            // foreach (var kp in irisRightResult.keyPoints)
-            // {
-            //     var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, true);
-            //     // p.z = kp.z * (imgSize[2].x - imgSize[0].x) / 2;
-            //     draw.color = Color.yellow;
-            //     draw.Point(p);
-            //     draw.Apply();
-            // }
+            
+            foreach (var kp in irisLeftResult.keyPoints)
+            {
+                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, false);
+                // p.z = kp.z * (imgSize[2].x - imgSize[0].x) / 2;
+                draw.color = Color.yellow;
+                draw.Point(p);
+                draw.Apply();
+            }
+            foreach (var kp in irisRightResult.keyPoints)
+            {
+                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, false);
+                // p.z = kp.z * (imgSize[2].x - imgSize[0].x) / 2;
+                draw.color = Color.yellow;
+                draw.Point(p);
+                draw.Apply();
+            }
         }
         private void DrawHand()
         {

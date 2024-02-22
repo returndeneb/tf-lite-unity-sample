@@ -34,14 +34,16 @@ namespace Holistic
         public void Invoke(Texture inputTex, FaceMesh.Result face,bool left)
         {
             var eye = left? new List<Vector2>{face.keyPoints[33], face.keyPoints[133]}: new List<Vector2>{face.keyPoints[362], face.keyPoints[263]};
-            var size = Mathf.Max(eye[0].x - eye[1].x, eye[0].y - eye[1].y);
+            
+            
+            var size = Mathf.Max(Mathf.Abs(eye[0].x- eye[1].x) , Mathf.Abs(eye[0].y - eye[1].y));
             var center = (eye[0] + eye[1]) / 2f;
             cropRect = new Rect(center.x - size / 2f, center.y - size / 2f, size, size);
-                
+            
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options
             {
                 rect = cropRect,
-                rotationDegree = 180f,
+                rotationDegree = 0f,
                 scale = EyeScale,
             });
 
@@ -67,7 +69,6 @@ namespace Holistic
                     1-output[0,i*3+1] * scale,
                     output[0,i*3+2] * scale
                 ));
-                result.keyPoints[i].y = 1 - result.keyPoints[i].y;
             }
             return result;
         }
