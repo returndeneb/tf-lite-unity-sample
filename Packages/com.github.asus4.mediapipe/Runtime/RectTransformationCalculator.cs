@@ -36,7 +36,7 @@ namespace TensorFlowLite
             var trs = Matrix4x4.TRS(
                 new Vector3(-center.x, -center.y, 0),
                 rotation,
-                new Vector3(1 / size.x, -1 / size.y, 1)
+                new Vector3(1 / size.x, 1 / size.y, 1)
             );
             
             return PopMatrix * trs  * PushMatrix;

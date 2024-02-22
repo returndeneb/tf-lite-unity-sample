@@ -60,7 +60,6 @@ namespace Holistic
         {
             const float scale = 1/64f ;
             var mtx = cropMatrix.inverse;
-
             for (var i = 0; i < 5; i++)
             {
                 result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
@@ -68,6 +67,7 @@ namespace Holistic
                     1-output[0,i*3+1] * scale,
                     output[0,i*3+2] * scale
                 ));
+                result.keyPoints[i].y = 1 - result.keyPoints[i].y;
             }
             return result;
         }

@@ -59,10 +59,7 @@ namespace Holistic
         }
         public void Invoke(Texture inputTex)
         {
-            
-            
             ToTensor(inputTex, inputTensor);
-            
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
 
@@ -83,9 +80,9 @@ namespace Holistic
                 }
                 var anchor = anchors[a];
                 var x = output0[a, 0]/width + anchor.x;
-                var y = output0[a, 1]/height + anchor.y;
-                var w = output0[a, 2]/width;
-                var h = output0[a, 3]/height;
+                var y = 1-(output0[a, 1]/height + anchor.y);
+                var w = output0[a, 2]/width*1.6f;
+                var h = output0[a, 3]/height*1.6f;
                 
                 var keyPoints = new Vector2[2];
                 for (var i = 0; i < 2; i++)
@@ -95,12 +92,11 @@ namespace Holistic
                     keyPoints[i] = new Vector2(xi, yi);
                 }
                 var vec = keyPoints[0] - keyPoints[1];
-                
                 results.Add(new Result()
                 {
                     score = score,
                     rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
-                    rotation =  -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
+                    rotation =  Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
                 });
             }
             return NonMaxSuppression();

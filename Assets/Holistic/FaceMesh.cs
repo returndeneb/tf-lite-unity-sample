@@ -18,9 +18,7 @@ namespace Holistic
 
         private readonly Result result;
         private Matrix4x4 cropMatrix;
-
-        private Vector2 FaceShift { get; set; } = new(0f, 0f);
-        private Vector2 FaceScale { get; set; } = new(1.6f, 1.6f);
+        private Vector2 FaceScale { get; set; } = new(1f, 1f);
         
         public FaceMesh(string modelPath) : base(modelPath, Accelerator.NONE)
         {
@@ -37,8 +35,7 @@ namespace Holistic
             cropMatrix = RectTransformationCalculator.CalcMatrix(new RectTransformationCalculator.Options
             {
                 rect = face.rect,
-                rotationDegree = face.rotation,
-                // shift = FaceShift,
+                rotationDegree = face.rotation+180f,
                 scale = FaceScale,
             });
             
@@ -59,8 +56,9 @@ namespace Holistic
         {
             const float scale = 1f / 192f;
             var mtx = cropMatrix.inverse;
+            
+            result.score = MathTF.Sigmoid(output1[0]);
 
-            result.score = output1[0];
             for (var i = 0; i < KeypointCount; i++)
             {
                 result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
@@ -68,11 +66,6 @@ namespace Holistic
                     1-output0[i, 1] * scale,
                     output0[i, 2] * scale
                 ));
-            }
-            
-            for (var i = 0; i < KeypointCount; i++)
-            {
-                result.keyPoints[i].y = 1 - result.keyPoints[i].y;
             }
             return result;
         }
@@ -86,7 +79,7 @@ namespace Holistic
             
             var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
             var center = rect.center;
-            var size = Mathf.Min(rect.width, rect.height);
+            var size = Mathf.Min(rect.width, rect.height)*1.6f;
             rect = new Rect(center.x - size * 0.5f, center.y - size * 0.5f, size, size);
 
             var vec =  landmarkKeyPoints[end] - landmarkKeyPoints[start];
@@ -95,7 +88,7 @@ namespace Holistic
             {
                 score = landmark.score,
                 rect = rect,
-                rotation = -Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
+                rotation = 180f-Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
             };
         }
     }
