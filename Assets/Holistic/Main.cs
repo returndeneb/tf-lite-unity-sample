@@ -51,7 +51,7 @@ namespace Holistic
             viewportLandmarks = new Vector4[PoseMesh.LandmarkCount];
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
 
-            image.material = poseDetect.TransformMat;
+            image.material = faceDetect.TransformMat;
         }
         private void OnDestroy()
         {
@@ -71,29 +71,29 @@ namespace Holistic
         {
             image.texture = texture;
             DetectFace(texture);
-            DetectPose(texture);
-            DetectHand(texture);
+            // DetectPose(texture);
+            // DetectHand(texture);
         }
         private void Update()
         {
             image.rectTransform.GetWorldCorners(imgSize);
             DrawFace();
-            DrawPose();
-            DrawHand();
+            // DrawPose();
+            // DrawHand();
         }
         private void DetectFace(Texture texture)
         {
             if (texture == null) return;
             if (faceDetectResult == null)
             {
-                faceDetect.Invoke(texture);
-                faceDetectResult = faceDetect.GetResults().FirstOrDefault();
-                if (faceDetectResult == null) return;
+            faceDetect.Invoke(texture);
+            faceDetectResult = faceDetect.GetResults().FirstOrDefault();
+            if (faceDetectResult == null) return;
             }
             faceMesh.Invoke(texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
             faceDetectResult = faceMeshResult.score < 0f ? null : FaceMesh.LandmarkToDetection(faceMeshResult);
-            
+           
             irisLeft.Invoke(texture, faceMeshResult,true);
             irisLeftResult = irisLeft.GetResult();
             
@@ -149,7 +149,8 @@ namespace Holistic
             for (var i = 0; i < faceMeshResult.keyPoints.Length; i++)
             {
                 var kp = faceMeshResult.keyPoints[i];
-                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, true);
+                var p = MathTF.Lerp(imgSize[0], imgSize[2], kp,true);
+                // var p = Camera.main.ViewportToWorldPoint(kp);
                 p.z = faceMeshResult.keyPoints[i].z * (imgSize[2].x - imgSize[0].x) / 2;
             
                 draw.color = i is 33 or 133 or 362 or 263 ? Color.red : Color.green;
@@ -164,7 +165,6 @@ namespace Holistic
                 draw.Point(p);
                 draw.Apply();
             }
-            
             foreach (var kp in irisRightResult.keyPoints)
             {
                 var p = MathTF.Lerp(imgSize[0], imgSize[2], kp, false);

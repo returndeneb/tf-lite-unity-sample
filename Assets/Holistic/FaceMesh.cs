@@ -69,6 +69,11 @@ namespace Holistic
                     output0[i, 2] * scale
                 ));
             }
+            
+            for (var i = 0; i < KeypointCount; i++)
+            {
+                result.keyPoints[i].y = 1 - result.keyPoints[i].y;
+            }
             return result;
         }
 
@@ -79,10 +84,6 @@ namespace Holistic
 
             var landmarkKeyPoints = landmark.keyPoints;
             
-            for (var i = 0; i < landmarkKeyPoints.Length; i++)
-            {
-                landmarkKeyPoints[i].y = 1f - landmarkKeyPoints[i].y;
-            }
             var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
             var center = rect.center;
             var size = Mathf.Min(rect.width, rect.height);

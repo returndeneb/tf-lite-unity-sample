@@ -17,7 +17,7 @@ namespace Holistic
         }
         
         private Matrix4x4 cropMatrix;
-        private Vector2 EyeScale { get; set; } = new(1.1f, 1.1f);
+        private Vector2 EyeScale { get; set; } = new(2.3f, 2.3f);
         private readonly Result result;
         private const int KeypointCount = 5;
         private readonly float[,] output = new float[1,15]; // 동공 key points 왼쪽
