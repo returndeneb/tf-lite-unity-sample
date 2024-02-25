@@ -57,7 +57,7 @@ namespace Holistic
             const float scale = 1f / 192f;
             var mtx = cropMatrix.inverse;
             
-            result.score = MathTF.Sigmoid(output1[0]);
+            result.score = output1[0];
 
             for (var i = 0; i < KeypointCount; i++)
             {
@@ -86,7 +86,7 @@ namespace Holistic
             
             return new FaceDetect.Result
             {
-                score = landmark.score,
+                score = 0f,
                 rect = rect,
                 rotation = 180f-Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
             };

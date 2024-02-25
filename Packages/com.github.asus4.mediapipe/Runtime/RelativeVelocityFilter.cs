@@ -41,7 +41,7 @@ namespace TensorFlowLite
             }
         };
 
-        private float lastValue = 0.0f;
+        private float lastValue;
         private float lastValueScale = 1.0f;
         private double lastTimestamp = -1;
 
@@ -56,7 +56,15 @@ namespace TensorFlowLite
             get => velocityScale;
             set => velocityScale = value;
         }
-
+        public class LowPassFilter
+        {
+            private float storedValue;
+            public float Apply(float value,float alpha= 1f)
+            {
+                storedValue = alpha * value + (1.0f - alpha) * storedValue;
+                return storedValue;
+            }
+        }
         public RelativeVelocityFilter(
             uint windowSize,
             float velocityScale,
@@ -65,10 +73,7 @@ namespace TensorFlowLite
             maxWindowSize = windowSize;
             this.velocityScale = velocityScale;
             this.distanceMode = distanceMode;
-            lowPassFilter = new LowPassFilter()
-            {
-                alpha = 1f,
-            };
+            lowPassFilter = new LowPassFilter();
             windows = new Queue<WindowElement>();
         }
 

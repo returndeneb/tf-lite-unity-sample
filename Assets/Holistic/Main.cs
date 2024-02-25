@@ -95,8 +95,8 @@ namespace Holistic
             faceMesh.Invoke(texture, faceDetectResult);
             faceMeshResult = faceMesh.GetResult();
             
-            faceDetectResult = faceMeshResult.score < 0.5f ? null : FaceMesh.LandmarkToDetection(faceMeshResult);
-           
+            faceDetectResult = faceMeshResult.score < 10f ? null : FaceMesh.LandmarkToDetection(faceMeshResult);
+            Debug.Log(faceMeshResult.score);
             irisLeft.Invoke(texture, faceMeshResult,true);
             irisLeftResult = irisLeft.GetResult();
             

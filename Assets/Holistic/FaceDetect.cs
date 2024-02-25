@@ -17,14 +17,8 @@ namespace Holistic
             public float rotation;
         }
 
-        private const int KeyPointsNum = 6;
-
-        // 0 - 3 are bounding box offset, width and height: dx, dy, w ,h
-        // 4 - 15 are 6 keypoint x and y coordinates: x0,y0,x1,y1,x2,y2,x3,y3
-        private readonly float[,] output0 = new float[896, 16];
-
-        // scores
-        private readonly float[] output1 = new float[896];
+        private readonly float[,] output0 = new float[896, 16]; // dx, dy, w ,h ,x0,y0,x1,y1,x2,y2..
+        private readonly float[] output1 = new float[896];// scores
 
         private readonly SsdAnchor[] anchors;
         private readonly List<Result> results = new ();
@@ -87,8 +81,8 @@ namespace Holistic
                 var keyPoints = new Vector2[2];
                 for (var i = 0; i < 2; i++)
                 {
-                    var xi = output0[a, 4 + (2 * i) + 0]/width+anchor.x;
-                    var yi = output0[a, 4 + (2 * i) + 1]/height+anchor.y;
+                    var xi = output0[a, 4+2*i + 0]/width+anchor.x;
+                    var yi = output0[a, 4+2*i + 1]/height+anchor.y;
                     keyPoints[i] = new Vector2(xi, yi);
                 }
                 var vec = keyPoints[0] - keyPoints[1];
@@ -101,7 +95,6 @@ namespace Holistic
             }
             return NonMaxSuppression();
         }
-
         private IEnumerable<Result> NonMaxSuppression(float iouThreshold=0.3f)
         {
             filteredResults.Clear();
@@ -111,7 +104,7 @@ namespace Holistic
                     result.rect.IntersectionOverUnion(newResult.rect)).Any(iou => iou >= iouThreshold);
                 if (ignoreCandidate) continue;
                 filteredResults.Add(result);
-                if (filteredResults.Count >= 100) break;
+                if (filteredResults.Count >= 1) break;
             }
             return filteredResults;
         }

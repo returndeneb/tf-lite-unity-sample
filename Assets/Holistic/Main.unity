@@ -539,11 +539,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f81f0d43e2d14fbbb064a205095507c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  editorCameraName: USB CAMERA
-  preferKind: 1
-  isFrontFacing: 0
-  requestSize: {x: 1280, y: 720}
-  requestFps: 60
+  webcamName: DroidCam Source 3
   onTextureUpdate:
     m_PersistentCalls:
       m_Calls: []
