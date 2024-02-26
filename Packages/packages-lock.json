@@ -7,15 +7,6 @@
       "dependencies": {},
       "hash": "b992a061fbf68ff1eb475d0837065b0549ed31ba"
     },
-    "com.github.asus4.mediapipe": {
-      "version": "file:com.github.asus4.mediapipe",
-      "depth": 0,
-      "source": "embedded",
-      "dependencies": {
-        "com.github.asus4.tflite": "2.15.0",
-        "com.github.asus4.tflite.common": "2.15.0"
-      }
-    },
     "com.github.asus4.texture-source": {
       "version": "0.1.3",
       "depth": 0,
