@@ -113,25 +113,23 @@ namespace Holistic
         }
         public static HandDetect.Result LandmarkToDetection(Result landmark)
                 {
-        
+                    
                     var landmarkKeyPoints = landmark.keyPoints;
-                    int[] selectedIndices = { 0,1,2,3, 5,6, 9,10, 13,14, 17,18 };
-                    
+                    int[] selectedIndices = { 0,1,2,3,5,6,9,10,13,14,17,18};
                     var rect = RectExtension.GetBoundingBox(landmarkKeyPoints,selectedIndices);
-                    // var rect = RectExtension.GetBoundingBox(landmarkKeyPoints);
                     var center = rect.center;
-
-                    var size = Mathf.Max(rect.width, rect.height)*2f;
-                    
                     var vec =  landmarkKeyPoints[0] - landmarkKeyPoints[9];
                     var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
-                    const float shifting = 0.01f;
+                    var size = Mathf.Max(rect.width, rect.height)+0.02f*(1-Mathf.Cos(rot* Mathf.Deg2Rad*4));
+                    const float shifting = 0.015f;
 
                     return new HandDetect.Result()
                     {
                         score = landmark.score,
-                        rect = new Rect(center.x + shifting*Mathf.Sin(rot*Mathf.PI/180f)- size * 0.5f, center.y + 
-                            shifting*Mathf.Cos(rot*Mathf.PI/180f) - size * 0.5f, size, size),
+                        rect = new Rect(
+                            x:center.x + shifting*Mathf.Sin(rot*Mathf.PI/180f) - size, 
+                            y:center.y + shifting*Mathf.Cos(rot*Mathf.PI/180f) - size, 
+                            size*2f, size*2f),
                         rotation = rot
                     };
                 }

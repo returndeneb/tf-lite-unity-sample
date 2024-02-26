@@ -108,31 +108,33 @@ namespace Holistic
         private void DetectHand(Texture texture)
         {
             if (texture == null) return;
-            if (handDetectResults is not { Count: > 0 } || handDetectResults[0].score<0.999f )
+            if (handDetectResults is not { Count: > 1 } || 
+                handDetectResults[0].score<0.999999f ||
+                handDetectResults[1].score<0.999999f)
             {
+                Debug.Log("check");
                 handDetect.Invoke(texture);
                 handDetectResults = handDetect.GetResults();
-                if (handDetectResults.Count <= 0) return;
             }
+            if (handDetectResults.Count <= 0) return;
             handMesh.Invoke(texture, handDetectResults[0]);
             handMeshResult = handMesh.GetResult();
-            //
-            // if (handMeshResult.score < 0.9f)
-            // {
-            //     handDetectResults = null;
-            //     return;
-            // }
+            // Debug.Log(handDetectResults[0].score);
+            if (handMeshResult.score < 0.999999f)
+            {
+                handDetectResults = null;
+                return;
+            }
             handDetectResults[0] = HandMesh.LandmarkToDetection(handMeshResult);
-          
-            // if (handDetectResults.Count <= 1) return;
-            // handMesh2.Invoke(texture, handDetectResults[1]);
-            // handMeshResult2 = handMesh2.GetResult();
-            // if (handMeshResult2.score < 0.9f)
-            // {
-            //     handDetectResults = null;
-            //     return;
-            // }
-            // handDetectResults[1] = HandMesh.LandmarkToDetection(handMeshResult2);
+            if (handDetectResults.Count <= 1) return;
+            handMesh2.Invoke(texture, handDetectResults[1]);
+            handMeshResult2 = handMesh2.GetResult();
+            if (handMeshResult2.score < 0.999999f)
+            {
+                handDetectResults = null;
+                return;
+            }
+            handDetectResults[1] = HandMesh.LandmarkToDetection(handMeshResult2);
         }
         private void DetectPose(Texture texture)
         {
@@ -182,11 +184,11 @@ namespace Holistic
         }
         private void DrawHand()
         {
-            if (handDetectResults is { Count: > 0 })
-            {
-                var handRect = handDetectResults[0].rect;
-                draw.Rect(MathTF.Lerp(imgSize[0], imgSize[2], handRect));
-            }
+            // if (handDetectResults is { Count: > 0 })
+            // {
+            //     var handRect = handDetectResults[0].rect;
+            //     draw.Rect(MathTF.Lerp(imgSize[0], imgSize[2], handRect));
+            // }
             if (handMeshResult != null)
             {
                 for (var i = 0; i < HandMesh.JointCount; i++)
@@ -194,18 +196,17 @@ namespace Holistic
                     var kp = handMeshResult.keyPoints[i];
                     var p1 = MathTF.Lerp(imgSize[0], imgSize[2], kp);
                     p1.z += handMeshResult.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
-                    draw.color = handMeshResult.handiness > 0.5 ? Color.black : Color.white;
+                    draw.color = handMeshResult.handiness > 0.5 ? Color.magenta : Color.cyan;
                     draw.Point(p1,0.1f);
                     draw.Apply();
                 }
             }
             if (handMeshResult2 == null) return;
-            
             for (var i = 0; i < HandMesh.JointCount; i++)
             {
                 var p1 = MathTF.Lerp(imgSize[0], imgSize[2], handMeshResult2.keyPoints[i]);
                 p1.z += handMeshResult2.keyPoints[i].z* (imgSize[2].x - imgSize[0].x);
-                draw.color = handMeshResult2.handiness > 0.5 ? Color.black : Color.white;
+                draw.color = handMeshResult2.handiness > 0.5 ? Color.magenta : Color.cyan;
                 draw.Point(p1,0.1f);
                 draw.Apply();
             }
