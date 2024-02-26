@@ -11,7 +11,7 @@ namespace Holistic
     public class Main : MonoBehaviour
     {
         [SerializeField]
-        private RawImage image;
+        // private RawImage image;
         
         private PoseDetect poseDetect;
         private PoseMesh poseMesh;
@@ -52,7 +52,7 @@ namespace Holistic
             viewportLandmarks = new Vector4[PoseMesh.LandmarkCount];
             GetComponent<WebCamInput>().onTextureUpdate.AddListener(OnTextureUpdate);
 
-            image.material = faceDetect.TransformMat;
+            // image.material = faceDetect.TransformMat;
         }
         private void OnDestroy()
         {
@@ -70,7 +70,7 @@ namespace Holistic
         }
         private void OnTextureUpdate(Texture texture)
         {
-            image.texture = texture;
+            // image.texture = texture;
             DetectFace(texture);
             DetectHand(texture);
             // DetectPose(texture);
@@ -78,9 +78,9 @@ namespace Holistic
         }
         private void Update()
         {
-            image.rectTransform.GetWorldCorners(imgSize);
-            DrawFace();
-            DrawHand();
+            // image.rectTransform.GetWorldCorners(imgSize);
+            // DrawFace();
+            // DrawHand();
             // DrawPose();
             
         }
@@ -108,6 +108,7 @@ namespace Holistic
         private void DetectHand(Texture texture)
         {
             if (texture == null) return;
+            
             if (handDetectResults is not { Count: > 1 } || 
                 handDetectResults[0].score<0.999999f ||
                 handDetectResults[1].score<0.999999f)

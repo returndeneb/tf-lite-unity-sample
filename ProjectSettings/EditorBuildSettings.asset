@@ -30,16 +30,16 @@ EditorBuildSettings:
     path: Assets/Samples/StyleTransfer/StyleTransfer.unity
     guid: 494656ebdd6dc43b4843586753a539bb
   - enabled: 1
-    path: Assets/Samples/FaceMesh/FaceDetection.unity
+    path: Assets/Holistic/Samples/FaceMesh/FaceDetection.unity
     guid: 60ee78610683e49afa385b780dcb680d
   - enabled: 1
-    path: Assets/Samples/FaceMesh/FaceMesh.unity
+    path: Assets/Holistic/Samples/FaceMesh/FaceMesh.unity
     guid: 1be80fb1c16c540169939bcf19536452
   - enabled: 1
-    path: Assets/Samples/HandTracking/HandTracking.unity
+    path: Assets/Holistic/Samples/HandTracking/HandTracking.unity
     guid: 662ce65fb2adc439e84fa9fc8d766fe4
   - enabled: 1
-    path: Assets/Samples/BlazePose/BlazePose.unity
+    path: Assets/Holistic/Samples/BlazePose/BlazePose.unity
     guid: 3abf2ff7d3acd4eda8d5014c1830c433
   - enabled: 1
     path: Assets/Samples/TextClassification/TextClassification.unity

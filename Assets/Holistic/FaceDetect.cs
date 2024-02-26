@@ -64,7 +64,7 @@ namespace Holistic
         public Result GetResults(float scoreThreshold = 0.7f)
         {
             results.Clear();
-
+            
             for (var a = 0; a < anchors.Length; a++)
             {
                 var score = MathTF.Sigmoid(output1[a]);
@@ -93,6 +93,7 @@ namespace Holistic
                     rotation =  Mathf.Atan2(-vec.y, vec.x)*Mathf.Rad2Deg
                 });
             }
+            
             return NonMaxSuppression();
         }
         private Result NonMaxSuppression(float iouThreshold=0.3f)
@@ -104,7 +105,7 @@ namespace Holistic
                     result.rect.IntersectionOverUnion(newResult.rect)).Any(iou => iou >= iouThreshold);
                 if (ignoreCandidate) continue;
                 filteredResults.Add(result);
-                if (filteredResults.Count >= 10) break;
+                if (filteredResults.Count >= 100) break;
             }
             return filteredResults.FirstOrDefault();
         }
