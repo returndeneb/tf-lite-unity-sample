@@ -10,8 +10,8 @@ namespace TensorFlowLite
     [CustomPropertyDrawer(typeof(WebCamName))]
     public class WebCamNameDrawer : PropertyDrawer
     {
-        string[] displayNames = null;
-        int selectedIndex = -1;
+        private string[] displayNames = null;
+        private int selectedIndex = -1;
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
@@ -22,11 +22,7 @@ namespace TensorFlowLite
                 return;
             }
 
-            if (displayNames == null)
-            {
-                // Init display names
-                displayNames = WebCamTexture.devices.Select(device => device.name).ToArray();
-            }
+            displayNames ??= WebCamTexture.devices.Select(device => device.name).ToArray();
 
             if (selectedIndex < 0)
             {
@@ -43,7 +39,7 @@ namespace TensorFlowLite
 
         private static int FindSelectedIndex(string[] displayNames, string value)
         {
-            for (int i = 0; i < displayNames.Length; i++)
+            for (var i = 0; i < displayNames.Length; i++)
             {
                 if (displayNames[i] == value)
                 {
