@@ -112,7 +112,6 @@ namespace Holistic
                 handDetectResults[0].score<0.999999f ||
                 handDetectResults[1].score<0.999999f)
             {
-                Debug.Log("check");
                 handDetect.Invoke(texture);
                 handDetectResults = handDetect.GetResults();
             }

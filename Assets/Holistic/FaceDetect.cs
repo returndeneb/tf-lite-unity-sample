@@ -104,7 +104,7 @@ namespace Holistic
                     result.rect.IntersectionOverUnion(newResult.rect)).Any(iou => iou >= iouThreshold);
                 if (ignoreCandidate) continue;
                 filteredResults.Add(result);
-                if (filteredResults.Count >= 1) break;
+                if (filteredResults.Count >= 10) break;
             }
             return filteredResults.FirstOrDefault();
         }
