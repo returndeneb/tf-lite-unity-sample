@@ -13,8 +13,8 @@ namespace Holistic
         }
 
         private const int KeypointCount = 468;
-        private readonly float[,] output0 = new float[KeypointCount, 3]; // key points
-        private readonly float[] output1 = new float[1]; // score
+        private readonly float[,] keyPoints = new float[KeypointCount, 3]; 
+        private readonly float[] score = new float[1]; 
 
         private readonly Result result;
         private Matrix4x4 cropMatrix;
@@ -48,24 +48,24 @@ namespace Holistic
 
             interpreter.SetInputTensorData(0, inputTensor);
             interpreter.Invoke();
-            interpreter.GetOutputTensorData(0, output0);
-            interpreter.GetOutputTensorData(1, output1);
+            interpreter.GetOutputTensorData(0, keyPoints);
+            interpreter.GetOutputTensorData(1, score);
         }
 
         public Result GetResult()
         {
-            const float scale = 1f / 192f;
+            const float scale = 192f ;
             var mtx = cropMatrix.inverse;
             
-            result.score = output1[0];
+            result.score = score[0];
 
             for (var i = 0; i < KeypointCount; i++)
             {
                 result.keyPoints[i] = mtx.MultiplyPoint3x4(new Vector3(
-                    output0[i, 0] * scale,
-                    1-output0[i, 1] * scale,
-                    output0[i, 2] * scale
-                ));
+                    keyPoints[i, 0],
+                    scale-keyPoints[i, 1],
+                    keyPoints[i, 2]
+                )/scale);
             }
             return result;
         }

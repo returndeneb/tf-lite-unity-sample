@@ -99,30 +99,26 @@ namespace Holistic
                 }
 
                 var anchor = anchors[i];
-
-                var cx = output1[i, 0] / width + anchor.x;
-                var cy = output1[i, 1] / height + anchor.y;
-                var w = output1[i, 2] / width;
-                var h = output1[i, 3] / height;
+                var x = output1[i, 0] / width + anchor.x;
+                var y = 1-(output1[i, 1] / height + anchor.y);
+                var w = output1[i, 2] / width*2.8f;
+                var h = output1[i, 3] / height*2.8f;
                 
                 var keyPoints = new Vector2[3];
                 for (var j = 0; j < 3; j++)
                 {
                     var lx = output1[i, 4 + (2 * j) + 0]/width +anchor.x;
-                    var ly = output1[i, 4 + (2 * j) + 1]/height +anchor.y;
-                    
+                    var ly = 1-(output1[i, 4 + (2 * j) + 1]/height +anchor.y);
                     keyPoints[j] = new Vector2(lx, ly);
                 }
                 var vec = keyPoints[0] - keyPoints[2];
                 var rot = -90f - Mathf.Atan2(vec.y, vec.x) * Mathf.Rad2Deg;
-                const float shifting = 0.2f / 2.8f;
-
+                
                 results.Add(new Result()
                 {
                     score = score,
-                    rect = new Rect(cx + shifting*Mathf.Sin(rot*Mathf.PI/180f)- w * 0.5f, cy + 
-                        shifting*Mathf.Cos(rot*Mathf.PI/180f) - h * 0.5f, w, h),
-
+                    rect = new Rect(x + Mathf.Sin(rot*Mathf.PI/180f)/14f- w * 0.5f, y + 
+                        Mathf.Cos(rot*Mathf.PI/180f)/14f - h * 0.5f, w, h),
                     rotation =  rot
                 });
             }

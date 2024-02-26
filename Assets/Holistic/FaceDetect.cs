@@ -61,7 +61,7 @@ namespace Holistic
             interpreter.GetOutputTensorData(1, output1);
         }
 
-        public IEnumerable<Result> GetResults(float scoreThreshold = 0.7f)
+        public Result GetResults(float scoreThreshold = 0.7f)
         {
             results.Clear();
 
@@ -82,7 +82,7 @@ namespace Holistic
                 for (var i = 0; i < 2; i++)
                 {
                     var xi = output0[a, 4+2*i + 0]/width+anchor.x;
-                    var yi = output0[a, 4+2*i + 1]/height+anchor.y;
+                    var yi = 1-(output0[a, 4+2*i + 1]/height+anchor.y);
                     keyPoints[i] = new Vector2(xi, yi);
                 }
                 var vec = keyPoints[0] - keyPoints[1];
@@ -90,12 +90,12 @@ namespace Holistic
                 {
                     score = score,
                     rect = new Rect(x - w * 0.5f, y - h * 0.5f, w, h),
-                    rotation =  Mathf.Atan2(vec.y, vec.x)*Mathf.Rad2Deg
+                    rotation =  Mathf.Atan2(-vec.y, vec.x)*Mathf.Rad2Deg
                 });
             }
             return NonMaxSuppression();
         }
-        private IEnumerable<Result> NonMaxSuppression(float iouThreshold=0.3f)
+        private Result NonMaxSuppression(float iouThreshold=0.3f)
         {
             filteredResults.Clear();
             foreach (var result in results.OrderByDescending(o => o.score))
@@ -106,7 +106,7 @@ namespace Holistic
                 filteredResults.Add(result);
                 if (filteredResults.Count >= 1) break;
             }
-            return filteredResults;
+            return filteredResults.FirstOrDefault();
         }
     }
 }
